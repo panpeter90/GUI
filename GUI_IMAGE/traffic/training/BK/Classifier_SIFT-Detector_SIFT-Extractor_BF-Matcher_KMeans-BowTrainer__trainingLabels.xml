@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<trainingLabels type_id="opencv-matrix">
+  <rows>120</rows>
+  <cols>1</cols>
+  <dt>i</dt>
+  <data>
+    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+    1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+    2 2 2 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
+    3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3</data></trainingLabels>
+</opencv_storage>
