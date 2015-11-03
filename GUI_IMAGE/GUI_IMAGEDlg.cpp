@@ -759,7 +759,6 @@ void CLI::startInteractiveCLI() {
 	int cameraDeviceNumber = 0;
 
 	ConsoleInput::getInstance()->clearConsoleScreen();
-	showConsoleHeader();
 
 	int screenWidth = 1920; // ConsoleInput::getInstance()->getIntCin("  >> Screen width (used to arrange windows): ", "  => Width >= 100 !!!\n", 100);
 	int screenHeight = 1080; // ConsoleInput::getInstance()->getIntCin("  >> Screen height (used to arrange windows): ", "  => Width >= 100 !!!\n", 100);
@@ -769,7 +768,6 @@ void CLI::startInteractiveCLI() {
 	do {
 		try {
 			ConsoleInput::getInstance()->clearConsoleScreen();
-			showConsoleHeader();
 
 			if (classifierTrained) {
 				userOption = getUserOption();
@@ -818,7 +816,6 @@ void CLI::startInteractiveCLI() {
 	} while (userOption != 0);
 
 	cout << "\n\n\n" << endl;
-	showVersion();
 	cout << "\n\n" << endl;
 	ConsoleInput::getInstance()->getUserInput();
 }
