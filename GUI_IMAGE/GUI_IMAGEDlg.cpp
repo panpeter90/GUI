@@ -32,6 +32,16 @@ using namespace cv;
 
 /*Various color for detect shirt */
 
+CString msg;
+/*option setup global variables*/
+int g_featureDetectorSelection = 0;
+int g_descriptorExtractorSelection = 0;
+int g_descriptorMatcherSelection = 0;
+int g_bowTrainerSelection = 0;
+int g_classifierSelection = 0;
+CLI UserGui;
+/*end of option setup*/
+
 enum                             {cBLACK=0,cWHITE, cGREY, cRED, cORANGE, cYELLOW, cGREEN, cAQUA, cBLUE, cPURPLE, cPINK,  NUM_COLOR_TYPES};
 char* sCTypes[NUM_COLOR_TYPES] = {"Black", "White","Grey","Red","Orange","Yellow","Green","Aqua","Blue","Purple","Pink"};
 uchar cCTHue[NUM_COLOR_TYPES] =    {0,       0,      0,     0,     20,      30,      55,    85,   115,    138,     161};
@@ -228,6 +238,7 @@ BEGIN_MESSAGE_MAP(CGUI_IMAGEDlg, CDialogEx)
 	ON_CBN_SELCHANGE(IDC_COMBO4, &CGUI_IMAGEDlg::OnCbnSelchangeCombo4)
 	ON_CBN_SELCHANGE(IDC_COMBO5, &CGUI_IMAGEDlg::OnCbnSelchangeCombo5)
 	ON_CBN_SELCHANGE(IDC_COMBO6, &CGUI_IMAGEDlg::OnCbnSelchangeCombo6)
+	ON_BN_CLICKED(IDC_START, &CGUI_IMAGEDlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 
@@ -613,144 +624,41 @@ void CGUI_IMAGEDlg::OnCbnSelchangeCombo1() //FeatureDetector
 {
 	// TODO: Add your control notification handler code here
 	int choice = ComboBox1.GetCurSel();
-	switch (choice){
-	case 0 :
-		cout << "SIFT" << endl;
-		break;
-	case 1 :
-		cout << "" << endl;
-
-		MessageBox(_T("Combo box 1 SURF"));
-		break;
-	case 2 :
-		cout << "GFTT" << endl;
-		break;
-	case 3 :
-		cout << "FAST" << endl;
-		break;
-	case 4 :
-		cout << "ORB" << endl;
-		break;
-	case 5 :
-		cout << "BRISK" << endl;
-		break;
-	case 6 :
-		cout << "STAR" << endl;
-		break;
-	case 7 :
-		cout << "MSER" << endl;
-		MessageBox(_T("Combo box 1 MSER"));
-		break;
-	default:
-		MessageBox(_T("Combo box 1 default"));
-		break;
-	}
+	g_featureDetectorSelection = choice + 1;
+	msg.Format(_T("%d"), g_featureDetectorSelection);
+	AfxMessageBox(msg);
 }
 
 
-void CGUI_IMAGEDlg::OnCbnSelchangeCombo3()
+
+void CGUI_IMAGEDlg::OnCbnSelchangeCombo3() //descriptorExtractor
 {
 	int choice = ComboBox3.GetCurSel();
-	switch (choice){
-	case 0 :
-		cout << "SIFT" << endl;
-		break;
-	case 1 :
-		cout << "SURF" << endl;
-		MessageBox(_T("Combo box 3 SURF"));
-		MessageBox(_T("SURF"));
-		break;
-	case 2 :
-		cout << "FREAK" << endl;
-		break;
-	case 3 :
-		cout << "BRIEF" << endl;
-		break;
-	case 4 :
-		cout << "ORB" << endl;
-		break;
-	case 5 :
-		cout << "BRISK" << endl;
-		break;
-	default:
-		MessageBox(_T("Combo box 3 default"));
-		break;
-	}
-	// TODO: Add your control notification handler code here
+	g_descriptorExtractorSelection = choice +1;
+
 }
 
 
-void CGUI_IMAGEDlg::OnCbnSelchangeCombo4()
+
+void CGUI_IMAGEDlg::OnCbnSelchangeCombo4() //descriptorMatcher
 {
 	int choice = ComboBox4.GetCurSel();
-	switch (choice){
-	case 0 :
-		cout << "FlannBasedMatcher" << endl;
-		break;
-	case 1 :
-		cout << "BFMatcher" << endl;
-		MessageBox(_T("BFMatcher"));
-		break;
-	default:
-		MessageBox(_T("Combo box 4 default"));
-		break;
-	}
-	// TODO: Add your control notification handler code here
+	g_descriptorMatcherSelection = choice +1;
+
 }
 
 
-void CGUI_IMAGEDlg::OnCbnSelchangeCombo5()
+void CGUI_IMAGEDlg::OnCbnSelchangeCombo5()  // bowTrainer
 {
 	int choice = ComboBox5.GetCurSel();
-	switch (choice){
-	case 0 :
-		cout << "BOWTrainer" << endl;
-		break;
-	default:
-		MessageBox(_T("Combo box5 default"));
-		break;
-	}
-	// TODO: Add your control notification handler code here
+	g_bowTrainerSelection = choice + 1;
 }
 
-void CGUI_IMAGEDlg::OnCbnSelchangeCombo6()
+void CGUI_IMAGEDlg::OnCbnSelchangeCombo6() //classifier
 {
 	int choice = ComboBox6.GetCurSel();
-	switch (choice){
-	case 0 :
-		cout << "Support Vector Machines" << endl;
-		break;
-	case 1 :
-		cout << "ANN" << endl;
-		MessageBox(_T("ANN"));
-		break;
-	case 2 :
-		cout << "Normal Bayes" << endl;
-		break;
-	case 3 :
-		cout << "Decision Trees" << endl;
-		break;
-	case 4 :
-		cout << "Boosting" << endl;
-		break;
-	case 5 :
-		cout << "Gra Boosting Trees" << endl;
-		break;
-	case 6 :
-		cout << "Random Trees" << endl;
-		break;
-	case 7 :
-		cout << "Ex Randomized Trees" << endl;
-		MessageBox(_T("Ex Randomized Trees"));
-		break;
-	default:
-		MessageBox(_T("Combo box 6 default"));
-		break;
-	}
-	// TODO: Add your control notification handler code here 
+	g_classifierSelection = choice +1;
 }
-
-
 
 
 void CLI::startInteractiveCLI() {
@@ -836,17 +744,11 @@ int CLI::getUserOption() {
 
 void CLI::setupTraining() {
 	cout << "\n\n ## Training setup:\n" << endl;
-
-	int featureDetectorSelection = selectFeatureDetector();
-	cout << "\n\n\n";
-	int descriptorExtractorSelection = selectDescriptorExtractor();
-	cout << "\n\n\n";
-	int descriptorMatcherSelection = selectDescriptorMatcher();
-	cout << "\n\n\n";
-	int bowTrainerSelection = selectBOWTrainer();
-	cout << "\n\n\n";
-	int classifierSelection = selectClassifier();
-	cout << "\n\n\n";
+	int featureDetectorSelection = g_featureDetectorSelection;
+	int descriptorExtractorSelection = g_descriptorExtractorSelection;
+	int descriptorMatcherSelection = g_descriptorMatcherSelection;
+	int bowTrainerSelection = g_bowTrainerSelection;
+	int classifierSelection = g_classifierSelection;
 
 	Ptr<FeatureDetector> featureDetector;
 	Ptr<DescriptorExtractor> descriptorExtractor;
@@ -946,63 +848,10 @@ void CLI::setupTraining() {
 }
 
 
-int CLI::selectFeatureDetector() {	
-	cout << "  => Select feature detector:\n";
-	cout << "    1 - SIFT\n";
-	cout << "    2 - SURF\n";
-	cout << "    3 - GFTT\n";
-	cout << "    4 - FAST\n";	
-	cout << "    5 - ORB\n";
-	cout << "    6 - BRISK\n";
-	cout << "    7 - STAR\n";
-	cout << "    8 - MSER\n";
 
-	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1, 7]: ", "Select one of the options above!", 1, 9);
+
+void CGUI_IMAGEDlg::OnBnClickedButton2()
+{
+	// TODO: Start training
+	UserGui.setupTraining();
 }
-
-
-int CLI::selectDescriptorExtractor() {	
-	cout << "  => Select descriptor extractor:\n";
-	cout << "    1 - SIFT\n";
-	cout << "    2 - SURF\n";
-	cout << "    3 - FREAK\n";
-	cout << "    4 - BRIEF\n";			
-	cout << "    5 - ORB\n";
-	cout << "    6 - BRISK\n";	
-
-	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1, 6]: ", "Select one of the options above!", 1, 7);
-}
-
-
-int CLI::selectDescriptorMatcher() {	
-	cout << "  => Select descriptor matcher:\n";
-	cout << "    1 - FlannBasedMatcher\n";
-	cout << "    2 - BFMatcher\n";
-
-	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1, 2]: ", "Select one of the options above!", 1, 3);
-}
-
-
-int CLI::selectBOWTrainer() {		
-	cout << "  => Select Bag of Words trainer:\n";
-	cout << "    1 - BOWKMeansTrainer\n";	
-
-	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1]: ", "Select one of the options above!", 1, 2);
-}
-
-
-int CLI::selectClassifier() {
-	cout << "  => Select classifier:\n";
-	cout << "    1 - Support Vector Machines\n";
-	cout << "    2 - Artificial Neural Networks\n";
-	cout << "    3 - Normal Bayes Classifier\n";	
-	cout << "    4 - Decision Trees\n";
-	cout << "    5 - Boosting\n";
-	cout << "    6 - Gradient Boosting Trees\n";
-	cout << "    7 - Random Trees\n";
-	cout << "    8 - Extremely Randomized Trees\n";	
-	//cout << "    9 - K-Nearest Neighbors\n";
-
-	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1]: ", "Select one of the options above!", 1, 9);
-}
-
