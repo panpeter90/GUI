@@ -52,7 +52,6 @@ class CLI {
 		virtual ~CLI() {}
 
 		void startInteractiveCLI();
-		void showConsoleHeader();
 		int getUserOption();
 		void setupTraining();
 
@@ -61,8 +60,6 @@ class CLI {
 		int selectDescriptorMatcher();
 		int selectBOWTrainer();
 		int selectClassifier();
-		
-		void showVersion();
 
 	private:
 		Ptr<ImagePreprocessor> _imagePreprocessor;

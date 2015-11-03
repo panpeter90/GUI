@@ -28,8 +28,6 @@ CGUI_IMAGEApp::CGUI_IMAGEApp()
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
-
-
 // The one and only CGUI_IMAGEApp object
 
 CGUI_IMAGEApp theApp;
@@ -48,12 +46,8 @@ BOOL CGUI_IMAGEApp::InitInstance()
 	// in your application.
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
-
 	CWinApp::InitInstance();
-
-
 	AfxEnableControlContainer();
-
 	// Create the shell manager, in case the dialog contains
 	// any shell tree view or shell list view controls.
 	CShellManager *pShellManager = new CShellManager;
@@ -91,3 +85,4 @@ BOOL CGUI_IMAGEApp::InitInstance()
 	//  application, rather than start the application's message pump.
 	return FALSE;
 }
+
