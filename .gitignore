@@ -22,6 +22,7 @@
 #folder
 /Debug
 /GUI_IMAGE/Debug
+/GUIIMAGE/GUI/GUI_IMAGE/traffic/training
 
 #1)git rm -r --cached .
 #2)git add .
