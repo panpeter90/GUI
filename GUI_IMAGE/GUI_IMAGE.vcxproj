@@ -138,7 +138,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="traffic\CLI\CLI.cpp" />
     <ClCompile Include="traffic\CLI\ConsoleInput.cpp" />
     <ClCompile Include="traffic\GUI\GUIUtils.cpp" />
     <ClCompile Include="traffic\ImageAnalysis\BowVocabulary.cpp" />

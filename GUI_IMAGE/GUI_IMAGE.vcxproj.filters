@@ -131,9 +131,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="traffic\CLI\CLI.cpp">
-      <Filter>Source Files\CLI</Filter>
-    </ClCompile>
     <ClCompile Include="traffic\CLI\ConsoleInput.cpp">
       <Filter>Source Files\CLI</Filter>
     </ClCompile>

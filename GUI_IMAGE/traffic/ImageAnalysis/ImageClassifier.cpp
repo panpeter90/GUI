@@ -22,13 +22,11 @@ bool ImageClassifier::trainClassifier(const string& vocabularySetupImgsList, con
 	Mat& trainingLabels32s = trainingData.getTrainLabels();
 	trainingSamples32f.convertTo(trainingSamples32f, CV_32FC1);
 	trainingLabels32s.convertTo(trainingLabels32s, CV_32SC1);
-
 	cout << "\n    -> Training " << _classifierName << " with " << trainingSamples32f.rows << " samples of " << trainingSamples32f.cols << " word size..." << endl;
 	PerformanceTimer performanceTimer;
 	performanceTimer.start();
 	bool trainResult = train(trainingSamples32f, trainingLabels32s);
 	cout << "    -> Training finished in " << performanceTimer.getElapsedTimeFormated() << "\n" << endl;	
-
 	saveClassifier();
 	return true;
 }

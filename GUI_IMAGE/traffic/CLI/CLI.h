@@ -55,12 +55,6 @@ class CLI {
 		int getUserOption();
 		void setupTraining();
 
-		int selectFeatureDetector();
-		int selectDescriptorExtractor();
-		int selectDescriptorMatcher();
-		int selectBOWTrainer();
-		int selectClassifier();
-
 	private:
 		Ptr<ImagePreprocessor> _imagePreprocessor;
 		Ptr<BowVocabulary> _bowVocabulary;
