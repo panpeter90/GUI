@@ -1,4 +1,5 @@
 #Visual Studio files
+*.ipch
 #folder
 /Debug
 /GUI_IMAGE/Debug
