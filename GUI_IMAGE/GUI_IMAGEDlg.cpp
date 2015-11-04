@@ -20,6 +20,8 @@
 #include <opencv\cvaux.h>
 #include <opencv\cxcore.h>
 #include <opencv\highgui.h>
+#include <io.h>
+#include <fcntl.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -34,13 +36,16 @@ using namespace cv;
 
 CString msg;
 /*option setup global variables*/
-int g_featureDetectorSelection = 0;
-int g_descriptorExtractorSelection = 0;
-int g_descriptorMatcherSelection = 0;
-int g_bowTrainerSelection = 0;
-int g_classifierSelection = 0;
+int g_featureDetectorSelection = 1;
+int g_descriptorExtractorSelection = 1;
+int g_descriptorMatcherSelection = 1;
+int g_bowTrainerSelection = 1;
+int g_classifierSelection = 1;
 CLI UserGui;
 /*end of option setup*/
+
+
+
 
 enum                             {cBLACK=0,cWHITE, cGREY, cRED, cORANGE, cYELLOW, cGREEN, cAQUA, cBLUE, cPURPLE, cPINK,  NUM_COLOR_TYPES};
 char* sCTypes[NUM_COLOR_TYPES] = {"Black", "White","Grey","Red","Orange","Yellow","Green","Aqua","Blue","Purple","Pink"};
@@ -287,6 +292,16 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 		ComboBox5.SetCurSel(0);
 		ComboBox6.SetCurSel(0);
 	//end combobox
+		
+		//init console window
+		if (!AllocConsole()){
+			AfxMessageBox(_T("Failed to create the console!"));
+		}
+		*stdout = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_OUTPUT_HANDLE), _O_WRONLY), _T("a"));
+		*stderr = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_ERROR_HANDLE), _O_WRONLY), _T("a"));
+		*stdin = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_INPUT_HANDLE), _O_WRONLY), _T("r"));
+		printf("Init console window\n");
+		//end
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -427,6 +442,9 @@ void ImageDisplay(cv::Mat src_)
 void CGUI_IMAGEDlg::OnBnClickedOk()
 {
 	// TODO: Add your control notification handler code here
+	if (!FreeConsole()){
+		AfxMessageBox(_T("Could not free the console!"));
+	}
 	CDialogEx::OnOK();
 }
 
@@ -625,8 +643,8 @@ void CGUI_IMAGEDlg::OnCbnSelchangeCombo1() //FeatureDetector
 	// TODO: Add your control notification handler code here
 	int choice = ComboBox1.GetCurSel();
 	g_featureDetectorSelection = choice + 1;
-	msg.Format(_T("%d"), g_featureDetectorSelection);
-	AfxMessageBox(msg);
+	//msg.Format(_T("%d"), g_featureDetectorSelection);
+	//AfxMessageBox(msg);
 }
 
 
@@ -658,6 +676,8 @@ void CGUI_IMAGEDlg::OnCbnSelchangeCombo6() //classifier
 {
 	int choice = ComboBox6.GetCurSel();
 	g_classifierSelection = choice +1;
+	
+
 }
 
 
@@ -845,10 +865,8 @@ void CLI::setupTraining() {
 	_imageClassifier->trainClassifier("traffic/image/listcar.txt", "traffic/image/listcartrain.txt");
 
 	_imageDetector = new ImageDetectorSlidingWindow(_imageClassifier);
+	cout << "\n\n ## Training setup OK \n" << endl;
 }
-
-
-
 
 void CGUI_IMAGEDlg::OnBnClickedButton2()
 {

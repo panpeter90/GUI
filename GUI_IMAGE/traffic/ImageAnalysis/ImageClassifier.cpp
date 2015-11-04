@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "ImageClassifier.h"
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageClassifier>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ImageClassifier::ImageClassifier(Ptr<BowVocabulary> bowVocabulary, string classifierFilename, Ptr<StatModel> classifier, string classifierName) :
 _bowVocabulary(bowVocabulary), _classifierFilename(classifierFilename), _classifier(classifier), _classifierName(classifierName) {}
@@ -26,7 +29,7 @@ bool ImageClassifier::trainClassifier(const string& vocabularySetupImgsList, con
 	PerformanceTimer performanceTimer;
 	performanceTimer.start();
 	bool trainResult = train(trainingSamples32f, trainingLabels32s);
-	cout << "    -> Training finished in " << performanceTimer.getElapsedTimeFormated() << "\n" << endl;	
+	cout << "    -> Training finished in " << performanceTimer.getElapsedTimeFormated() << "\n" << endl;
 	saveClassifier();
 	return true;
 }
