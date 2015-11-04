@@ -42,10 +42,8 @@ int g_descriptorMatcherSelection = 1;
 int g_bowTrainerSelection = 1;
 int g_classifierSelection = 1;
 CLI UserGui;
+ImageAnalysis imageAnalysis(NULL,NULL);
 /*end of option setup*/
-
-
-
 
 enum                             {cBLACK=0,cWHITE, cGREY, cRED, cORANGE, cYELLOW, cGREEN, cAQUA, cBLUE, cPURPLE, cPINK,  NUM_COLOR_TYPES};
 char* sCTypes[NUM_COLOR_TYPES] = {"Black", "White","Grey","Red","Orange","Yellow","Green","Aqua","Blue","Purple","Pink"};
@@ -277,13 +275,13 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 	ComboBox2.SetCurSel(1);
 	cascadeFace = (CvHaarClassifierCascade*)cvLoad(cascadeFileFace, 0, 0, 0 );
-		namedWindow("Hien thi anh",1);
-		HWND hWnd =(HWND)cvGetWindowHandle("Hien thi anh");
+		namedWindow("DisplayImage",1);
+		HWND hWnd =(HWND)cvGetWindowHandle("DisplayImage");
 		HWND hParent=::GetParent(hWnd);
 		::SetParent(hWnd,GetDlgItem(IDC_PICTURE)->m_hWnd);
 		::ShowWindow(hParent,SW_HIDE);
 		Mat display_init = cv::Mat(600, 900, CV_8UC3, Scalar(150,150,150));
-		imshow("Hien thi anh",display_init);
+		imshow("DisplayImage",display_init);
 	// TODO: Add extra initialization here
 	//Combobox
 		ComboBox1.SetCurSel(0);
@@ -354,7 +352,7 @@ HCURSOR CGUI_IMAGEDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-void CGUI_IMAGEDlg::OnBnClickedButton1()
+void CGUI_IMAGEDlg::OnBnClickedButton1() //load image
 {
 	//CString text;
 	//EditBox.GetWindowTextW(text);
@@ -371,7 +369,7 @@ void CGUI_IMAGEDlg::OnBnClickedButton1()
 		Mat src = imread(file_name,1);
 		Mat dest;
 		//resize(src,dest,Size(320,240),0,0,1);
-		//imshow("Hien thi anh",src);
+		//imshow("DisplayImage",src);
 		ImageDisplay(src);
 
 	}
@@ -425,21 +423,20 @@ void ImageDisplay(cv::Mat src_)
 			height_ = 600;
 			width_ = int(height_*src_.cols/src_.rows);
 		}
-
 		else
 		{
 			width_ = src_.cols;
 			height_ = src_.rows;
 		}
 		cv::resize(src_, disp, cv::Size(width_, height_));
-		cv::imshow("Hien thi anh", disp);
+		cv::imshow("DisplayImage", disp);
 	}
 }
 
 
 
 
-void CGUI_IMAGEDlg::OnBnClickedOk()
+void CGUI_IMAGEDlg::OnBnClickedOk() //exit button
 {
 	// TODO: Add your control notification handler code here
 	if (!FreeConsole()){
@@ -448,9 +445,9 @@ void CGUI_IMAGEDlg::OnBnClickedOk()
 	CDialogEx::OnOK();
 }
 
-void CGUI_IMAGEDlg::OnBnClickedRec()
+void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 {
-	IplImage* imageDisplay;
+	/*IplImage* imageDisplay;
 	IplImage* imageIn;
 	if (file_name == "")
 	{
@@ -615,9 +612,9 @@ void CGUI_IMAGEDlg::OnBnClickedRec()
 		}//end if valid height
 	}//end for loop
 	// Display the RGB debugging image
-    cvShowImage("Hien thi anh", imageDisplay);
-	}
-	
+    cvShowImage("DisplayImage", imageDisplay);
+	}*/
+	imageAnalysis.processImage(file_name);
 }
 
 void CGUI_IMAGEDlg::OnBnClickedCheck1()
@@ -865,7 +862,9 @@ void CLI::setupTraining() {
 	_imageClassifier->trainClassifier("traffic/image/listcar.txt", "traffic/image/listcartrain.txt");
 
 	_imageDetector = new ImageDetectorSlidingWindow(_imageClassifier);
-	cout << "\n\n ## Training setup OK \n" << endl;
+	cout << "-->Training setup OK \n" << endl;
+	imageAnalysis.setImagePreprocessor(UserGui._imagePreprocessor);
+	imageAnalysis.setImageDetector(UserGui._imageDetector);
 }
 
 void CGUI_IMAGEDlg::OnBnClickedButton2()

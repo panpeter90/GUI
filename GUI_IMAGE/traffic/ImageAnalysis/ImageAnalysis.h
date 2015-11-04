@@ -58,7 +58,6 @@ class ImageAnalysis {
 		
 		/// Constructor with initialization of parameters with default value		 		 
 		ImageAnalysis(Ptr<ImagePreprocessor> imagePreprocessor, Ptr<ImageDetector> imageClassifierSVM);
-		
 		/// ImageAnalysis destructor that performs cleanup of OpenCV HighGUI windows (in case they are used)		 
 		virtual ~ImageAnalysis();			
 
@@ -134,7 +133,12 @@ class ImageAnalysis {
 		bool getOptionsOneWindow() const { return _optionsOneWindow; }
 		void setOptionsOneWindow(bool val) { _optionsOneWindow = val; }
 		// ------------------------------------------------------------------------------  </gets | sets> ------------------------------------------------------------------------------
-
+		// ------------------------------------------------------------------------------  <gets | sets> -------------------------------------------------------------------------------
+		Ptr<ImagePreprocessor> getImagePreprocessor() { return _imagePreprocessorPtr; }
+		void setImagePreprocessor(Ptr<ImagePreprocessor> val) { _imagePreprocessorPtr = val; }
+		Ptr<ImageDetector> getImageDetector() { return _imageDetector; }
+		void setImageDetector(Ptr<ImageDetector> val) { _imageDetector = val; }
+		//
 	private:		
 		Mat _originalImage;
 		Mat _preprocessedImage;

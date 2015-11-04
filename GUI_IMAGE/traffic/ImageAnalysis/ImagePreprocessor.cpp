@@ -34,7 +34,7 @@ void ImagePreprocessor::preprocessImage(Mat& image, bool useCVHighGUI) {
 	// remove noise with bilateral filter
 	cv::bilateralFilter(image.clone(), image, _bilateralFilterDistance, _bilateralFilterSigmaColor, _bilateralFilterSigmaSpace);
 	if (useCVHighGUI) {
-		imshow(WINDOW_NAME_BILATERAL_FILTER, image);
+		//imshow(WINDOW_NAME_BILATERAL_FILTER, image);
 	}
 
 	// histogram equalization to improve color segmentation
@@ -46,7 +46,7 @@ void ImagePreprocessor::preprocessImage(Mat& image, bool useCVHighGUI) {
 
 	cv::bilateralFilter(image.clone(), image, _bilateralFilterDistance, _bilateralFilterSigmaColor, _bilateralFilterSigmaSpace);
 	if (useCVHighGUI) {
-		imshow(WINDOW_NAME_CONTRAST_AND_BRIGHTNESS, image);
+		//imshow(WINDOW_NAME_CONTRAST_AND_BRIGHTNESS, image);
 	}
 }
 
@@ -76,10 +76,10 @@ void ImagePreprocessor::histogramEqualization(Mat& image, bool useCLAHE, bool us
 
 	if (useCVHighGUI) {
 		if (useCLAHE) {
-			imshow(WINDOW_NAME_HISTOGRAM_EQUALIZATION_CLAHE, image);
+			//imshow(WINDOW_NAME_HISTOGRAM_EQUALIZATION_CLAHE, image);
 		}
 		else {
-			imshow(WINDOW_NAME_HISTOGRAM_EQUALIZATION, image);
+			//imshow(WINDOW_NAME_HISTOGRAM_EQUALIZATION, image);
 		}
 	}
 }
