@@ -158,7 +158,7 @@ bool BowVocabulary::computeTrainingData(TrainingData& trainingDataOut, const str
 			string imageFilenameShort = "traffic/image/imgDB/" + fileNames[i]; //image\imgDB
 			//string imageFilenameFull = imageFilenameShort + IMAGE_TOKEN;
 			string imageFilenameFull = imageFilenameShort + DOT_JPG;
-			cout << " iterative file " << imageFilenameFull << i << endl;
+			cout << "Analysing file: " << imageFilenameFull << endl;
 			if (_imagePreprocessor->loadAndPreprocessImage(imageFilenameFull, imagePreprocessed, CV_LOAD_IMAGE_GRAYSCALE, false)) {
 				vector<KeyPoint> keypoints;				
 				_featureDetector->detect(imagePreprocessed, keypoints);

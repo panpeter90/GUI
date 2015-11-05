@@ -32,7 +32,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnBnClickedButton1();
+	
 	CButton LoadImage;
 	CComboBox ComboBox1;
 	CComboBox ComboBox2;
@@ -56,6 +56,7 @@ public:
 	afx_msg void OnCbnSelchangeCombo4();
 	afx_msg void OnCbnSelchangeCombo5();
 	afx_msg void OnBnClickedButton2();
+	afx_msg void OnBnClickedButton1();
 	afx_msg void UpdateLabelCar();
 	afx_msg void UpdateLabelBicycle();
 	afx_msg void UpdateLabelAll();

@@ -22,6 +22,7 @@
 #include <opencv\highgui.h>
 #include <io.h>
 #include <fcntl.h>
+#include "opencv2/opencv.hpp"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -44,6 +45,7 @@ int g_classifierSelection = 1;
 CLI UserGui;
 //number of vehicle
 float UpdateLabelFlag = 0;
+int ResourceFlag = 0;
 int carNumber = 0;
 int bikeNumber = 0;
 int bicycleNumber = 0;
@@ -65,8 +67,9 @@ CvScalar text_color= {255,255,255,0};
 const char* cascadeFileFace = "haarcascades\\haarcascade_frontalface_alt.xml";
 CvHaarClassifierCascade* cascadeFace;
 string file_name="";
+string video_name="";
 bool is_image = true;
-bool is_exit=false;
+bool is_exit = false;
 bool is_show_debug = false;
 /***********************************************************************
 Function:  Draw a rectangle around the given object (defaults to a red color)
@@ -284,14 +287,13 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
-	ComboBox2.SetCurSel(1);
 	cascadeFace = (CvHaarClassifierCascade*)cvLoad(cascadeFileFace, 0, 0, 0 );
 	namedWindow("DisplayImage",1);
 	HWND hWnd =(HWND)cvGetWindowHandle("DisplayImage");
 	HWND hParent=::GetParent(hWnd);
 	::SetParent(hWnd,GetDlgItem(IDC_PICTURE)->m_hWnd);
 	::ShowWindow(hParent,SW_HIDE);
-	Mat display_init = cv::Mat(550, 900, CV_8UC3, Scalar(150,150,150));
+	Mat display_init = cv::Mat(800, 1200, CV_8UC3, Scalar(150,150,150));
 	imshow("DisplayImage",display_init);
 	// TODO: Add extra initialization here
 	//Combobox
@@ -301,6 +303,7 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	ComboBox5.SetCurSel(0);
 	ComboBox6.SetCurSel(0);
 	//end combobox
+	ComboBox2.SetCurSel(0); //Image
 	//number of vehicle
 	CFont *m_pFont = new CFont();
 	m_pFont->CreatePointFont(250, _T("Arial"));
@@ -403,24 +406,46 @@ HCURSOR CGUI_IMAGEDlg::OnQueryDragIcon()
 
 void CGUI_IMAGEDlg::OnBnClickedButton1() //load image
 {
-	//CString text;
-	//EditBox.GetWindowTextW(text);
-	//EditBox.SetWindowTextW(_T("hello")+text);
-	//Mat display_init = cv::Mat(600, 900, CV_8UC3, Scalar(150,150, 150));
-	//ImageDisplay(display_init);
-	CString Filter =_T("image file(*.bmp; *.jpg) |*.bmp;*.jpg|All Files (*.*)|*.*||");
-	CFileDialog dlg(TRUE,_T("*.jpg"),NULL,OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_HIDEREADONLY,Filter,NULL);
-	dlg.m_ofn.lpstrTitle=_T("Load Image");
-	if (dlg.DoModal()==IDOK)
-	{
-		CString CSfile_name = dlg.GetPathName();
-		file_name=(CStringA(CSfile_name));
-		Mat src = imread(file_name,1);
-		Mat dest;
-		//resize(src,dest,Size(320,240),0,0,1);
-		//imshow("DisplayImage",src);
-		ImageDisplay(src);
 
+	if(ResourceFlag == 0) {
+		CString Filter =_T("image file(*.bmp; *.jpg) |*.bmp;*.jpg|All Files (*.*)|*.*||");
+		CFileDialog dlg(TRUE,_T("*.jpg"),NULL,OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_HIDEREADONLY,Filter,NULL);
+		dlg.m_ofn.lpstrTitle=_T("Load Image");
+		if (dlg.DoModal()==IDOK)
+		{
+			CString CSfile_name = dlg.GetPathName();
+			file_name=(CStringA(CSfile_name));
+			Mat src = imread(file_name,1);
+			Mat dest;
+			//resize(src,dest,Size(320,240),0,0,1);
+			//imshow("DisplayImage",src);
+			ImageDisplay(src);
+		}
+	}else{
+		CString Filter =_T("Video file(*.mp4; *.avi) |*.mp4;*.avi|All Files (*.*)|*.*||");
+		CFileDialog dlg(TRUE,_T("*.avi"),NULL,OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_HIDEREADONLY,Filter,NULL);
+		dlg.m_ofn.lpstrTitle=_T("Load Video");
+		if (dlg.DoModal()==IDOK)
+		{
+			CString CSfile_name = dlg.GetPathName();
+			video_name=(CStringA(CSfile_name));
+			VideoCapture cap(video_name); // open the default camera
+			if(!cap.isOpened()){  // check if we succeeded
+				cout << "Error is existed when open this video \n" <<endl;
+			}
+			Mat edges;
+			for(;;)
+			{
+				Mat frame;
+				if (!cap.read(frame))             
+					break; // get a new frame from video
+				imshow("DisplayImage",frame);
+				if(waitKey(30) >= 0 || is_exit==true) {
+					break;
+				}
+			}
+			cout << "Close this video \n" << endl;
+		}
 	}
 	// TODO: Add your control notification handler code here
 }
@@ -432,23 +457,10 @@ void CGUI_IMAGEDlg::OnCbnSelchangeCombo2()
 	int choice = ComboBox2.GetCurSel();
 	switch (choice){
 		case 0 :
-			text_color = CV_RGB(0,0,0);
+			ResourceFlag = 0; //Image
 			break;
 		case 1 :
-			text_color = CV_RGB(255,255,255);
-			MessageBox(_T("white color"));
-			break;
-		case 2:
-			text_color = CV_RGB(255,0,0);
-			break;
-		case 3:
-			text_color = CV_RGB(0,255,0);
-			break;
-		case 4:
-			text_color = CV_RGB(0,0,255);
-			break;
-		case 5:
-			text_color = CV_RGB(255,255,0);
+			ResourceFlag = 1; //Video
 			break;
 		default:
 			break;
@@ -491,6 +503,7 @@ void CGUI_IMAGEDlg::OnBnClickedOk() //exit button
 	if (!FreeConsole()){
 		AfxMessageBox(_T("Could not free the console!"));
 	}
+	is_exit = true;
 	CDialogEx::OnOK();
 }
 
@@ -724,8 +737,6 @@ void CGUI_IMAGEDlg::OnCbnSelchangeCombo6() //classifier
 {
 	int choice = ComboBox6.GetCurSel();
 	g_classifierSelection = choice +1;
-	
-
 }
 
 
@@ -805,7 +816,6 @@ int CLI::getUserOption() {
 	cout << "   4 - Test detector from video\n";
 	cout << "   5 - Test detector from camera\n";
 	cout << "   0 - Exit\n";
-
 	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [0, 4]: ", "Select one of the options above!", 0, 6);
 }
 

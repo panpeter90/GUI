@@ -25,11 +25,11 @@ bool ImageClassifier::trainClassifier(const string& vocabularySetupImgsList, con
 	Mat& trainingLabels32s = trainingData.getTrainLabels();
 	trainingSamples32f.convertTo(trainingSamples32f, CV_32FC1);
 	trainingLabels32s.convertTo(trainingLabels32s, CV_32SC1);
-	cout << "\n    -> Training " << _classifierName << " with " << trainingSamples32f.rows << " samples of " << trainingSamples32f.cols << " word size..." << endl;
+	cout << "-> Training " << _classifierName << " with " << trainingSamples32f.rows << " samples of " << trainingSamples32f.cols << " word size..." << endl;
 	PerformanceTimer performanceTimer;
 	performanceTimer.start();
 	bool trainResult = train(trainingSamples32f, trainingLabels32s);
-	cout << "    -> Training finished in " << performanceTimer.getElapsedTimeFormated() << "\n" << endl;
+	cout << "-> Training finished in " << performanceTimer.getElapsedTimeFormated() << "\n" << endl;
 	saveClassifier();
 	return true;
 }
@@ -78,11 +78,11 @@ bool ImageClassifier::loadClassifier() {
 		try {
 			_classifier->load(classifierFilenameFull.str().c_str(), CLASSIFIER_TAG);
 		} catch(...) {
-			cout << "    -> Failed to load classifier from " << classifierFilenameFull.str() << endl;
+			cout << "-> Failed to load classifier from " << classifierFilenameFull.str() << endl;
 			fs.release();
 			return false;
 		}
-		cout << "    -> Loaded classifier from " << classifierFilenameFull.str() << endl;
+		cout << "-> Loaded classifier from " << classifierFilenameFull.str() << endl;
 		fs.release();
 		return true;
 	} else {
@@ -97,9 +97,9 @@ void ImageClassifier::saveClassifier() {
 
 	try {
 		_classifier->save(classifierFilenameFull.str().c_str(), CLASSIFIER_TAG);
-		cout << "    -> Saved classifier to " << classifierFilenameFull.str() << endl;
+		cout << "-> Saved classifier to " << classifierFilenameFull.str() << endl;
 	} catch (...) {
-		cout << "    -> Failed to save classifier to " << classifierFilenameFull.str() << endl;
+		cout << "-> Failed to save classifier to " << classifierFilenameFull.str() << endl;
 	}		
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageClassifier>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
