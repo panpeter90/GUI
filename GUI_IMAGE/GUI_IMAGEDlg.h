@@ -40,6 +40,9 @@ public:
 	CComboBox ComboBox4;
 	CComboBox ComboBox5;
 	CComboBox ComboBox6;
+	CStatic StaticCar;
+	CStatic StaticBicycle;
+	
 	afx_msg void OnCbnSelchangeCombo2();
 	CStatic Picture1;
 	afx_msg void OnBnClickedOk();
@@ -53,5 +56,9 @@ public:
 	afx_msg void OnCbnSelchangeCombo4();
 	afx_msg void OnCbnSelchangeCombo5();
 	afx_msg void OnBnClickedButton2();
+	afx_msg void UpdateLabelCar();
+	afx_msg void UpdateLabelBicycle();
+	afx_msg void UpdateLabelAll();
+	afx_msg void UpdateLabelOne();
 };
 

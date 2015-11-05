@@ -34,6 +34,15 @@
     <None Include="res\GUI_IMAGE.ico">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\car.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\carlab.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\bicycle.ico">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI_IMAGE.h">

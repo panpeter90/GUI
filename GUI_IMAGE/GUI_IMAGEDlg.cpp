@@ -42,6 +42,15 @@ int g_descriptorMatcherSelection = 1;
 int g_bowTrainerSelection = 1;
 int g_classifierSelection = 1;
 CLI UserGui;
+//number of vehicle
+float UpdateLabelFlag = 0;
+int carNumber = 0;
+int bikeNumber = 0;
+int bicycleNumber = 0;
+int craneNumber = 0;
+int truckNumber = 0;
+int busNumber = 0;
+//end
 ImageAnalysis imageAnalysis(NULL,NULL);
 /*end of option setup*/
 
@@ -225,6 +234,8 @@ void CGUI_IMAGEDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO6, ComboBox6);
 	DDX_Control(pDX, IDC_PICTURE, Picture1);
 	DDX_Control(pDX, IDC_CHECK1, CheckBox);
+	DDX_Control(pDX, IDC_STATIC_CAR, StaticCar);
+	DDX_Control(pDX, IDC_STATIC_BICYCLE, StaticBicycle);
 }
 
 BEGIN_MESSAGE_MAP(CGUI_IMAGEDlg, CDialogEx)
@@ -275,33 +286,71 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 	ComboBox2.SetCurSel(1);
 	cascadeFace = (CvHaarClassifierCascade*)cvLoad(cascadeFileFace, 0, 0, 0 );
-		namedWindow("DisplayImage",1);
-		HWND hWnd =(HWND)cvGetWindowHandle("DisplayImage");
-		HWND hParent=::GetParent(hWnd);
-		::SetParent(hWnd,GetDlgItem(IDC_PICTURE)->m_hWnd);
-		::ShowWindow(hParent,SW_HIDE);
-		Mat display_init = cv::Mat(600, 900, CV_8UC3, Scalar(150,150,150));
-		imshow("DisplayImage",display_init);
+	namedWindow("DisplayImage",1);
+	HWND hWnd =(HWND)cvGetWindowHandle("DisplayImage");
+	HWND hParent=::GetParent(hWnd);
+	::SetParent(hWnd,GetDlgItem(IDC_PICTURE)->m_hWnd);
+	::ShowWindow(hParent,SW_HIDE);
+	Mat display_init = cv::Mat(550, 900, CV_8UC3, Scalar(150,150,150));
+	imshow("DisplayImage",display_init);
 	// TODO: Add extra initialization here
 	//Combobox
-		ComboBox1.SetCurSel(0);
-		ComboBox3.SetCurSel(0);
-		ComboBox4.SetCurSel(0);
-		ComboBox5.SetCurSel(0);
-		ComboBox6.SetCurSel(0);
+	ComboBox1.SetCurSel(0);
+	ComboBox3.SetCurSel(0);
+	ComboBox4.SetCurSel(0);
+	ComboBox5.SetCurSel(0);
+	ComboBox6.SetCurSel(0);
 	//end combobox
-		
-		//init console window
-		if (!AllocConsole()){
-			AfxMessageBox(_T("Failed to create the console!"));
-		}
-		*stdout = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_OUTPUT_HANDLE), _O_WRONLY), _T("a"));
-		*stderr = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_ERROR_HANDLE), _O_WRONLY), _T("a"));
-		*stdin = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_INPUT_HANDLE), _O_WRONLY), _T("r"));
-		printf("Init console window\n");
-		//end
+	//number of vehicle
+	CFont *m_pFont = new CFont();
+	m_pFont->CreatePointFont(250, _T("Arial"));
+	StaticCar.SetFont(m_pFont, TRUE);
+	StaticBicycle.SetFont(m_pFont, TRUE);
+	UpdateLabelAll();
+	//end number vehicle
+	
+	if (!AllocConsole()){
+		AfxMessageBox(_T("Failed to create the console!"));
+	}
+	*stdout = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_OUTPUT_HANDLE), _O_WRONLY), _T("a"));
+	*stderr = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_ERROR_HANDLE), _O_WRONLY), _T("a"));
+	*stdin = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_INPUT_HANDLE), _O_WRONLY), _T("r"));
+	printf("Init console window successfully\n");
+	//end
+
+	//init console window
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
+
+void CGUI_IMAGEDlg::UpdateLabelOne(){
+	if(UpdateLabelFlag == (float)1){
+		UpdateLabelCar();
+		cout << "UpdateLabelCar" << endl;
+	}else if(UpdateLabelFlag == (float)3){
+		UpdateLabelBicycle();
+		cout << "UpdateLabelBicycle" << endl;
+	}
+}
+void CGUI_IMAGEDlg::UpdateLabelAll(){
+	UpdateLabelCar();
+	UpdateLabelBicycle();
+}
+
+void CGUI_IMAGEDlg::UpdateLabelCar(){
+	CString temp_carNumber;
+	stringstream convert;
+	convert << carNumber;
+	temp_carNumber = convert.str().c_str();
+	StaticCar.SetWindowText(temp_carNumber);
+}
+void CGUI_IMAGEDlg::UpdateLabelBicycle(){
+	CString temp_bicycleNumber;
+	stringstream convert;
+	convert << bicycleNumber;
+	temp_bicycleNumber = convert.str().c_str();
+	StaticBicycle.SetWindowText(temp_bicycleNumber);
+}
+
 
 void CGUI_IMAGEDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
@@ -357,8 +406,8 @@ void CGUI_IMAGEDlg::OnBnClickedButton1() //load image
 	//CString text;
 	//EditBox.GetWindowTextW(text);
 	//EditBox.SetWindowTextW(_T("hello")+text);
-	Mat display_init = cv::Mat(600, 900, CV_8UC3, Scalar(150,150, 150));
-	ImageDisplay(display_init);
+	//Mat display_init = cv::Mat(600, 900, CV_8UC3, Scalar(150,150, 150));
+	//ImageDisplay(display_init);
 	CString Filter =_T("image file(*.bmp; *.jpg) |*.bmp;*.jpg|All Files (*.*)|*.*||");
 	CFileDialog dlg(TRUE,_T("*.jpg"),NULL,OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_HIDEREADONLY,Filter,NULL);
 	dlg.m_ofn.lpstrTitle=_T("Load Image");
@@ -615,6 +664,8 @@ void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
     cvShowImage("DisplayImage", imageDisplay);
 	}*/
 	imageAnalysis.processImage(file_name);
+	UpdateLabelOne();
+
 }
 
 void CGUI_IMAGEDlg::OnBnClickedCheck1()
@@ -865,6 +916,7 @@ void CLI::setupTraining() {
 	cout << "-->Training setup OK \n" << endl;
 	imageAnalysis.setImagePreprocessor(UserGui._imagePreprocessor);
 	imageAnalysis.setImageDetector(UserGui._imageDetector);
+	
 }
 
 void CGUI_IMAGEDlg::OnBnClickedButton2()
@@ -872,3 +924,4 @@ void CGUI_IMAGEDlg::OnBnClickedButton2()
 	// TODO: Start training
 	UserGui.setupTraining();
 }
+

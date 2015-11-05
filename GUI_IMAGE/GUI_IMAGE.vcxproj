@@ -99,6 +99,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
+    <None Include="res\bicycle.ico" />
+    <None Include="res\car.ico" />
+    <None Include="res\carlab.ico" />
     <None Include="res\GUI_IMAGE.ico" />
     <None Include="res\GUI_IMAGE.rc2" />
   </ItemGroup>
