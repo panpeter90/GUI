@@ -1,0 +1,14 @@
+#Visual Studio files
+*.ipch
+*.suo
+*.sln
+*.sdf
+#folder
+/Debug
+/GUI_IMAGE/Debug
+/GUI_IMAGE/traffic/training
+
+#1)git rm -r --cached .
+#2)git add .
+#3)git commit -m ".gitignore is now working"
+#4)git push origin master

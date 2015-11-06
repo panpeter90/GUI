@@ -1,0 +1,212 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\CLI">
+      <UniqueIdentifier>{576ed014-01c0-4bb8-9f31-0c853bc0cfe2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GUI">
+      <UniqueIdentifier>{bf149b4c-680c-44eb-aeb9-bd212a909ccd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ImageAnalysis">
+      <UniqueIdentifier>{d60468f7-4191-4bed-9272-c5013a57e092}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libs">
+      <UniqueIdentifier>{e5e236c7-4e7c-42eb-842e-b5084c18891a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="res\GUI_IMAGE.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\GUI_IMAGE.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\car.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\carlab.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\bicycle.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GUI_IMAGE.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI_IMAGEDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\Configs.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\CLI\CLI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\CLI\ConsoleInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\GUI\GUIUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\BowVocabulary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\DetectorEvaluationResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageAnalysis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifierANN.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifierBayes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifierBoost.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifierDecisionTrees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifierExtremelyRandomizedTrees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifierGradientBoostingTrees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifierKNN.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifierRandomTrees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageClassifierSVM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageDetector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageDetectorSlidingWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImagePreprocessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\ImageAnalysis\ImageUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\libs\PerformanceTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\libs\TimeUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="GUI_IMAGE.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI_IMAGEDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\CLI\ConsoleInput.cpp">
+      <Filter>Source Files\CLI</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\GUI\GUIUtils.cpp">
+      <Filter>Source Files\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\BowVocabulary.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\DetectorEvaluationResult.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageAnalysis.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifier.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifierANN.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifierBayes.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifierBoost.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifierDecisionTrees.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifierExtremelyRandomizedTrees.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifierGradientBoostingTrees.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifierKNN.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifierRandomTrees.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageClassifierSVM.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageDetector.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageDetectorSlidingWindow.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImagePreprocessor.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\ImageAnalysis\ImageUtils.cpp">
+      <Filter>Source Files\ImageAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\libs\PerformanceTimer.cpp">
+      <Filter>Source Files\libs</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\libs\TimeUtils.cpp">
+      <Filter>Source Files\libs</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GUI_IMAGE.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
