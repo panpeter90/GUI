@@ -440,7 +440,7 @@ void CGUI_IMAGEDlg::OnBnClickedButton1() //load image
 				if (!cap.read(frame))             
 					break; // get a new frame from video
 				imshow("DisplayImage",frame);
-				if(waitKey(30) >= 0 || is_exit==true) {
+				if(waitKey(30)>0 || is_exit==true) {
 					break;
 				}
 			}

@@ -1,5 +1,8 @@
 #Visual Studio files
 *.ipch
+*.suo
+*.sln
+*sdf
 #folder
 /Debug
 /GUI_IMAGE/Debug
