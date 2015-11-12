@@ -23,6 +23,26 @@
 #include <io.h>
 #include <fcntl.h>
 #include "opencv2/opencv.hpp"
+//#include <opencv2/nonfree/nonfree.hpp>
+#include <fstream>
+#include <memory>
+#include <functional>
+#include <queue>
+#include <map>
+#include <cstring>
+#include <stdlib.h>
+#include <sys/types.h>
+#include "dirent.h"
+#include <sys/stat.h>
+#include <stdint.h>
+#include <windows.h>
+#include <ctime>
+#include <string>
+
+#define MAX_PATH 512
+
+#define MIN_KPS    3
+#define VOCA_COLS  1000
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -39,7 +59,7 @@ CString msg;
 /*option setup global variables*/
 int g_featureDetectorSelection = 1;
 int g_descriptorExtractorSelection = 1;
-int g_descriptorMatcherSelection = 1;
+int g_descriptorMatcherSelection = 2;
 int g_bowTrainerSelection = 1;
 int g_classifierSelection = 1;
 CLI UserGui;
@@ -53,14 +73,48 @@ int craneNumber = 0;
 int truckNumber = 0;
 int busNumber = 0;
 //end
+const string kVocabularyFile( "vocabulary.xml" );
+const string kBowImageDescriptorsDir( "bagOfWords" );
+const string kSvmsDirs( "svms" );
 ImageAnalysis imageAnalysis(NULL,NULL);
 /*end of option setup*/
+// some utility functions 
+void MakeDir( const string& filepath );
+void help( const char* progName );
+void GetDirList( const string& directory, vector<string>* dirlist );
+void GetFileList( const string& directory, vector<string>* filelist );
+void ComputeBowImageDescriptors( const string& databaseDir, Mat& vocabulary,
+	const vector<string>& categories,
+	const Ptr<FeatureDetector>& detector,
+	const Ptr<DescriptorExtractor>& extractor,
+	Ptr<BOWImgDescriptorExtractor>& bowExtractor,
+	const string& imageDescriptorsDir,
+	map<string, Mat>* samples);
+void TrainSvm( const map<string, Mat>& samples, const string& category, const CvSVMParams& svmParams, CvSVM* svm );
+Mat BuildVocabulary( const string& databaseDir,
+	const vector<string>& categories,
+	const Ptr<FeatureDetector>& detector,
+	const Ptr<DescriptorExtractor>& extractor,
+	int wordCount);
+void  opencv_llc_bow_Descriptor(Mat &image, Mat &vocabulary,  vector<KeyPoint> &key_points, Mat &llc_descriptor);
+void  train();
+void test();
+//
 
 enum                             {cBLACK=0,cWHITE, cGREY, cRED, cORANGE, cYELLOW, cGREEN, cAQUA, cBLUE, cPURPLE, cPINK,  NUM_COLOR_TYPES};
 char* sCTypes[NUM_COLOR_TYPES] = {"Black", "White","Grey","Red","Orange","Yellow","Green","Aqua","Blue","Purple","Pink"};
 uchar cCTHue[NUM_COLOR_TYPES] =    {0,       0,      0,     0,     20,      30,      55,    85,   115,    138,     161};
 uchar cCTSat[NUM_COLOR_TYPES] =    {0,       0,      0,    255,   255,     255,     255,   255,   255,    255,     255};
 uchar cCTVal[NUM_COLOR_TYPES] =    {0,      255,    120,   255,   255,     255,     255,   255,   255,    255,     255};
+//param
+class Params {
+public:
+	Params(): wordCount(VOCA_COLS){}
+	int		wordCount;
+	Ptr<FeatureDetector> featureDetector;
+	Ptr<DescriptorExtractor> descriptorExtractor;
+	Ptr<DescriptorMatcher> descriptorMatcher;
+};
 
 CvScalar text_color= {255,255,255,0};
 /* Face Detection HaarCascade Classifier file */
@@ -70,7 +124,8 @@ string file_name="";
 string video_name="";
 bool is_image = true;
 bool is_exit = false;
-bool is_show_debug = false;
+bool is_sparse_coding = false;
+Params params;
 /***********************************************************************
 Function:  Draw a rectangle around the given object (defaults to a red color)
 Input: - Image
@@ -185,7 +240,49 @@ int getPixelColorType(int H, int S, int V)
 	}
 	return color;
 }
+void MakeDir( const string& filepath )
+{
+	char path[MAX_PATH];
 
+	strncpy(path, filepath.c_str(),  MAX_PATH);
+
+#ifdef _WIN32
+	CreateDirectoryA(path,NULL);
+#else
+	CreateDirectoryA(path, 0755);
+#endif
+}
+
+void ListDir( const string& directory, vector<string>* entries)
+{
+	char dir[MAX_PATH];
+	string  str_dir = directory;
+
+	strncpy(dir, str_dir.c_str(), MAX_PATH);
+
+	DIR             *p_dir;
+	struct dirent *p_dirent;
+
+	p_dir = opendir(dir);
+
+	while(p_dirent = readdir(p_dir))
+	{
+		string  str_fn = p_dirent->d_name;
+
+		if (str_fn != "." && str_fn != "..")  entries->push_back(str_fn);
+	}
+}
+
+void GetDirList( const string& directory, vector<string>* dirlist )
+{
+	ListDir( directory, dirlist);
+}
+
+void GetFileList( const string& directory, vector<string>* filelist )
+{
+	ListDir( directory, filelist);
+
+}
 
 static void ImageDisplay(cv::Mat src_); //MINHNT
 
@@ -299,7 +396,7 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	//Combobox
 	ComboBox1.SetCurSel(0);
 	ComboBox3.SetCurSel(0);
-	ComboBox4.SetCurSel(0);
+	ComboBox4.SetCurSel(1);
 	ComboBox5.SetCurSel(0);
 	ComboBox6.SetCurSel(0);
 	//end combobox
@@ -319,9 +416,8 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	*stderr = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_ERROR_HANDLE), _O_WRONLY), _T("a"));
 	*stdin = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_INPUT_HANDLE), _O_WRONLY), _T("r"));
 	printf("Init console window successfully\n");
-	//end
 
-	//init console window
+	//init console window end
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -509,175 +605,12 @@ void CGUI_IMAGEDlg::OnBnClickedOk() //exit button
 
 void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 {
-	/*IplImage* imageDisplay;
-	IplImage* imageIn;
-	if (file_name == "")
-	{
-		return;
+	if(is_sparse_coding){
+		test();
+	}else{
+		imageAnalysis.processImage(file_name);
+		UpdateLabelOne();
 	}
-	else
-	{
-	const char *file_name_1= file_name.c_str();
-	imageIn = cvLoadImage(file_name_1, CV_LOAD_IMAGE_UNCHANGED);
-		if (!imageIn) {
-			cerr << "Couldn't load image file '" << file_name << "'" << endl;
-			exit(1);
-		}
-	imageDisplay = cvCloneImage(imageIn);
-	// If trying to debug the color detector code, enable this:
-	if(is_show_debug)
-	{
-		// Create a HSV image showing the color types of the whole image, for debugging.
-		IplImage *imageInHSV = cvCreateImage(cvGetSize(imageIn), 8, 3);
-		cvCvtColor(imageIn, imageInHSV, CV_BGR2HSV);	// (note that OpenCV stores RGB images in B,G,R order.
-		IplImage* imageDisplayHSV = cvCreateImage(cvGetSize(imageIn), 8, 3);	// Create an empty HSV image
-		//cvSet(imageDisplayHSV, cvScalar(0,0,0, 0));	// Clear HSV image to blue.
-		int hIn = imageDisplayHSV->height;
-		int wIn = imageDisplayHSV->width;
-		int rowSizeIn = imageDisplayHSV->widthStep;		// Size of row in bytes, including extra padding
-		char *imOfsDisp = imageDisplayHSV->imageData;	// Pointer to the start of the image HSV pixels.
-		char *imOfsIn = imageInHSV->imageData;	// Pointer to the start of the input image HSV pixels.
-		for (int y=0; y<hIn; y++) {
-			for (int x=0; x<wIn; x++) {
-				// Get the HSV pixel components
-				uchar H = *(uchar*)(imOfsIn + y*rowSizeIn + x*3 + 0);	// Hue
-				uchar S = *(uchar*)(imOfsIn + y*rowSizeIn + x*3 + 1);	// Saturation
-				uchar V = *(uchar*)(imOfsIn + y*rowSizeIn + x*3 + 2);	// Value (Brightness)
-				// Determine what type of color the HSV pixel is.
-				int ctype = getPixelColorType(H, S, V);
-				//ctype = x / 60;
-				// Show the color type on the displayed image, for debugging.
-				*(uchar*)(imOfsDisp + (y)*rowSizeIn + (x)*3 + 0) = cCTHue[ctype];	// Hue
-				*(uchar*)(imOfsDisp + (y)*rowSizeIn + (x)*3 + 1) = cCTSat[ctype];	// Full Saturation (except for black & white)
-				*(uchar*)(imOfsDisp + (y)*rowSizeIn + (x)*3 + 2) = cCTVal[ctype];		// Full Brightness
-			}
-		}
-		// Display the HSV debugging image
-		IplImage *imageDisplayHSV_RGB = cvCreateImage(cvGetSize(imageDisplayHSV), 8, 3);
-		cvCvtColor(imageDisplayHSV, imageDisplayHSV_RGB, CV_HSV2BGR);	// (note that OpenCV stores RGB images in B,G,R order.
-		cvNamedWindow("Colors", 1);
-		cvShowImage("Colors", imageDisplayHSV_RGB);
-	}
-	// SHOW_DEBUG_IMAGE
-
-
-	// First, search for all the frontal faces in the image
-	CvRect foundFace = cvRect(0, 0, 0, 0);	// Set init values if nothing was detected.
-	vector<CvRect> rectFaces;
-	double timeFaceDetectStart = (double)cvGetTickCount();	// Record the timing.
-	rectFaces = findObjectsInImage(imageIn, cascadeFace);
-	double tallyFaceDetectTime = (double)cvGetTickCount() - timeFaceDetectStart;
-	cout << "Found " << rectFaces.size() << " faces in " << tallyFaceDetectTime/((double)cvGetTickFrequency()*1000.) << "ms\n";
-
-	// Process each detected face
-	cout << "Detecting shirt colors below the faces." << endl;
-	for (int r=0; r<rectFaces.size(); r++) {
-		float initialConfidence = 1.0f;
-		int bottom;
-		CvRect rectFace = rectFaces[r];
-		drawRectangle(imageDisplay, rectFace, CV_RGB(255,0,0));
-
-		// Create the shirt region, to be below the detected face and of similar size.
-		float SHIRT_DY = 1.5f;	// Distance from top of face to top of shirt region, based on detected face height.
-		float SHIRT_SCALE_X = 0.6f;	// Width of shirt region compared to the detected face
-		float SHIRT_SCALE_Y = 0.6f;	// Height of shirt region compared to the detected face
-		CvRect rectShirt;
-		rectShirt.x = rectFace.x + (int)(0.5f * (1.0f-SHIRT_SCALE_X) * (float)rectFace.width);
-		rectShirt.y = rectFace.y + (int)(SHIRT_DY * (float)rectFace.height) + (int)(0.5f * (1.0f-SHIRT_SCALE_Y) * (float)rectFace.height);
-		rectShirt.width = (int)(SHIRT_SCALE_X * rectFace.width);
-		rectShirt.height = (int)(SHIRT_SCALE_Y * rectFace.height);
-		cout << "Shirt region is from " << rectShirt.x << ", " << rectShirt.y << " to " << rectShirt.x + rectShirt.width - 1 << ", " << rectShirt.y + rectShirt.height - 1 << endl;
-
-		// If the shirt region goes partly below the image, try just a little below the face
-		bottom = rectShirt.y+rectShirt.height-1;
-		if (bottom > imageIn->height-1) {
-			SHIRT_DY = 0.95f;	// Distance from top of face to top of shirt region, based on detected face height.
-			SHIRT_SCALE_Y = 0.3f;	// Height of shirt region compared to the detected face
-			// Use a higher shirt region
-			rectShirt.y = rectFace.y + (int)(SHIRT_DY * (float)rectFace.height) + (int)(0.5f * (1.0f-SHIRT_SCALE_Y) * (float)rectFace.height);
-			rectShirt.height = (int)(SHIRT_SCALE_Y * rectFace.height);
-			initialConfidence = initialConfidence * 0.5f;	// Since we are using a smaller region, we are less confident about the results now.
-			cout << "Warning: Shirt region goes past the end of the image. Trying to reduce the shirt region position to " << rectShirt.y << " with a height of " << rectShirt.height << endl;
-		}
-
-		// Try once again if it is partly below the image.
-		bottom = rectShirt.y+rectShirt.height-1;
-		if (bottom > imageIn->height-1) {
-			bottom = imageIn->height-1;	// Limit the bottom
-			rectShirt.height = bottom - (rectShirt.y-1);	// Adjust the height to use the new bottom
-			initialConfidence = initialConfidence * 0.7f;	// Since we are using a smaller region, we are less confident about the results now.
-			cout << "Warning: Shirt region still goes past the end of the image. Trying to reduce the shirt region height to " << rectShirt.height << endl;
-		}
-
-		// Make sure the shirt region is in the image
-		if (rectShirt.height <= 1) {
-			cout << "Warning: Shirt region is not in the image at all, so skipping this face." << endl;
-		}
-		else {
-
-			// Show the shirt region
-			drawRectangle(imageDisplay, rectShirt, text_color);
-
-			// Convert the shirt region from RGB colors to HSV colors
-			//cout << "Converting shirt region to HSV" << endl;
-			IplImage *imageShirt = cropRectangle(imageIn, rectShirt);
-			IplImage *imageShirtHSV = cvCreateImage(cvGetSize(imageShirt), 8, 3);
-			cvCvtColor(imageShirt, imageShirtHSV, CV_BGR2HSV);	// (note that OpenCV stores RGB images in B,G,R order.
-			if( !imageShirtHSV ) {
-				cerr << "ERROR: Couldn't convert Shirt image from BGR2HSV." << endl;
-				exit(1);
-			}
-
-			//cout << "Determining color type of the shirt" << endl;
-			int h = imageShirtHSV->height;				// Pixel height
-			int w = imageShirtHSV->width;				// Pixel width
-			int tallyColors[NUM_COLOR_TYPES];
-			for (int i=0; i<NUM_COLOR_TYPES; i++)
-				tallyColors[i] = 0;
-			// Scan the shirt image to find the tally of pixel colors
-			for (int y=0; y<h; y++) {
-				for (int x=0; x<w; x++) {
-					CvScalar s =cvGetAt(imageShirtHSV,y,x);
-					// Determine what type of color the HSV pixel is.
-					int ctype = getPixelColorType(s.val[0], s.val[1], s.val[2]);
-					// Keep count of these colors.
-					tallyColors[ctype]++;
-				}
-			}
-
-			// Print a report about color types, and find the max tally
-			//cout << "Number of pixels found using each color type (out of " << (w*h) << ":\n";
-			int tallyMaxIndex = 0;
-			int tallyMaxCount = -1;
-			int pixels = w * h;
-			for (int i=0; i<NUM_COLOR_TYPES; i++) {
-				int v = tallyColors[i];
-				cout << sCTypes[i] << " " << (v*100/pixels) << "%, ";
-				if (v > tallyMaxCount) {
-					tallyMaxCount = tallyColors[i];
-					tallyMaxIndex = i;
-				}
-			}
-			cout << endl;
-			int percentage = initialConfidence * (tallyMaxCount * 100 / pixels);
-			cout << "Color of shirt: " << sCTypes[tallyMaxIndex] << " (" << percentage << "% confidence)." << endl << endl;
-			// Display the color type over the shirt in the image.
-			CvFont font;
-			cvInitFont(&font,CV_FONT_HERSHEY_PLAIN,0.8,1.0, 0,1, CV_AA);	// For OpenCV 2.0
-			char text[256];
-			sprintf_s(text, sizeof(text)-1, "%d%%", percentage);		
-			cvPutText(imageDisplay, sCTypes[tallyMaxIndex], cvPoint(rectShirt.x, rectShirt.y + rectShirt.height+12), &font, text_color);
-			cvPutText(imageDisplay, text, cvPoint(rectShirt.x, rectShirt.y + rectShirt.height +24), &font,text_color);
-			// Free resources.
-			cvReleaseImage( &imageShirtHSV );
-			cvReleaseImage( &imageShirt );
-		}//end if valid height
-	}//end for loop
-	// Display the RGB debugging image
-    cvShowImage("DisplayImage", imageDisplay);
-	}*/
-	imageAnalysis.processImage(file_name);
-	UpdateLabelOne();
 
 }
 
@@ -688,11 +621,11 @@ void CGUI_IMAGEDlg::OnBnClickedCheck1()
 	UINT nCheck = CheckBox.GetCheck();
     if (nCheck == BST_CHECKED)
     {
-        is_show_debug = true;
+        is_sparse_coding = true;
     }
     else
     {
-        is_show_debug = false;
+        is_sparse_coding = false;
     }
 
 }
@@ -708,8 +641,6 @@ void CGUI_IMAGEDlg::OnCbnSelchangeCombo1() //FeatureDetector
 	//AfxMessageBox(msg);
 }
 
-
-
 void CGUI_IMAGEDlg::OnCbnSelchangeCombo3() //descriptorExtractor
 {
 	int choice = ComboBox3.GetCurSel();
@@ -717,15 +648,12 @@ void CGUI_IMAGEDlg::OnCbnSelchangeCombo3() //descriptorExtractor
 
 }
 
-
-
 void CGUI_IMAGEDlg::OnCbnSelchangeCombo4() //descriptorMatcher
 {
 	int choice = ComboBox4.GetCurSel();
 	g_descriptorMatcherSelection = choice +1;
 
 }
-
 
 void CGUI_IMAGEDlg::OnCbnSelchangeCombo5()  // bowTrainer
 {
@@ -932,6 +860,451 @@ void CLI::setupTraining() {
 void CGUI_IMAGEDlg::OnBnClickedButton2()
 {
 	// TODO: Start training
-	UserGui.setupTraining();
+	if(is_sparse_coding){
+		train();
+	}else {
+		UserGui.setupTraining();
+	}
 }
 
+/*
+ * loop through every directory
+ * compute each image's keypoints and descriptors
+ * train a vocabulary
+ */
+void  train()
+{
+	
+	switch (g_featureDetectorSelection) {
+	case 1: { params.featureDetector = new cv::SiftFeatureDetector(); break; }
+	case 2: { params.featureDetector = new cv::SurfFeatureDetector(400); break; }
+	case 3: { params.featureDetector = new cv::GoodFeaturesToTrackDetector(); break; }
+	case 4: { params.featureDetector = new cv::FastFeatureDetector(); break; }		
+	case 5: { params.featureDetector = new cv::OrbFeatureDetector(); break; }
+	case 6: { params.featureDetector = new cv::BRISK(); break; }
+	case 7: { params.featureDetector = new cv::StarFeatureDetector(); break; }
+	case 8: { params.featureDetector = new cv::MserFeatureDetector(); break; }	
+	default: break;
+	}
+
+	switch (g_descriptorExtractorSelection) {
+	case 1: { params.descriptorExtractor = new cv::SiftDescriptorExtractor(); break; }
+	case 2: { params.descriptorExtractor = new cv::SurfDescriptorExtractor(); break; }
+	case 3: { params.descriptorExtractor = new cv::FREAK();	 break; }
+	case 4: { params.descriptorExtractor = new cv::BriefDescriptorExtractor(); break; }		
+	case 5: { params.descriptorExtractor = new cv::OrbDescriptorExtractor(); break; }
+	case 6: { params.descriptorExtractor = new cv::BRISK(); break; }
+	default: break;
+	}
+	bool binaryDescriptor;
+	int bfNormType;
+	Ptr<cv::flann::IndexParams> flannIndexParams/* = new cv::flann::AutotunedIndexParams()*/;
+	if (g_descriptorExtractorSelection > 2) { // binary descriptors
+		binaryDescriptor = true;
+		bfNormType = cv::NORM_HAMMING;
+		//flannIndexParams = new cv::flann::HierarchicalClusteringIndexParams();
+		flannIndexParams = new cv::flann::LshIndexParams(20, 10, 2);
+	} else { // float descriptors
+		binaryDescriptor = false;
+		bfNormType = cv::NORM_L2;
+		flannIndexParams = new cv::flann::KDTreeIndexParams();
+	}
+
+	switch (g_descriptorMatcherSelection) {
+	case 1: { params.descriptorMatcher = new cv::FlannBasedMatcher(flannIndexParams); break; }
+	case 2: { params.descriptorMatcher = new cv::BFMatcher(bfNormType, false); break; }
+	default: break;
+	}
+
+	string databaseDir = "data/train";
+	string resultDir =  "data/result/";
+
+	string bowImageDescriptorsDir = resultDir + kBowImageDescriptorsDir;
+	string svmsDir = resultDir + kSvmsDirs;
+	MakeDir( resultDir );
+	MakeDir( bowImageDescriptorsDir );
+	MakeDir( svmsDir );
+
+	// key: image category name
+	// value: histogram of image
+	vector<string> categories;
+	GetDirList( databaseDir, &categories );
+
+	Ptr<FeatureDetector> detector = params.featureDetector;
+	Ptr<DescriptorExtractor> extractor = params.descriptorExtractor;
+	Ptr<DescriptorMatcher> matcher = params.descriptorMatcher;
+
+	if ( detector.empty() || extractor.empty() || matcher.empty() ) {
+		cout << "feature detector or descriptor extractor or descriptor matcher cannot be created.\n Maybe try other types?" << endl;
+	}
+
+	Mat vocabulary;
+	string vocabularyFile = resultDir + '/' + kVocabularyFile;
+	FileStorage fs( vocabularyFile, FileStorage::READ );
+	if ( fs.isOpened() ) {
+		fs["vocabulary"] >> vocabulary;
+	} else {
+		vocabulary = BuildVocabulary( databaseDir, categories, detector, extractor, params.wordCount );
+		FileStorage fs( vocabularyFile, FileStorage::WRITE );
+		if ( fs.isOpened() ) {
+			fs << "vocabulary" << vocabulary;
+		}
+	}
+	Ptr<BOWImgDescriptorExtractor> bowExtractor = new BOWImgDescriptorExtractor( extractor, matcher );
+	bowExtractor -> setVocabulary( vocabulary );
+	map<string, Mat> samples;//key: category name, value: histogram
+
+	ComputeBowImageDescriptors( databaseDir, vocabulary, categories, detector, extractor, bowExtractor, bowImageDescriptorsDir,  &samples );
+
+	SVMParams svmParams;
+	svmParams.svm_type = CvSVM::C_SVC;
+	svmParams.kernel_type = CvSVM::LINEAR;
+	//svmParams.kernel_type = CvSVM::RBF;
+	svmParams.term_crit = cvTermCriteria(CV_TERMCRIT_ITER, 1e+3, 1e-6);
+
+	int sign = 0; //sign of the positive class
+	float confidence = -FLT_MAX;
+	for ( map<string, Mat>::const_iterator itr = samples.begin(); itr != samples.end(); ++itr ) {
+		CvSVM svm;
+		string svmFileName = svmsDir + "/" + itr -> first + ".xml";
+
+		std::cout << "TrainSvm " <<  svmFileName  << std::endl;
+
+		TrainSvm( samples, itr->first, svmParams, &svm );
+		if (svmsDir != "") svm.save( svmFileName.c_str() );
+	}
+
+	std::cout << "train  done" << std::endl;
+}
+
+Mat BuildVocabulary( const string& databaseDir,
+					 const vector<string>& categories,
+					 const Ptr<FeatureDetector>& detector,
+					 const Ptr<DescriptorExtractor>& extractor,
+					 int wordCount) {
+	Mat allDescriptors;
+	for ( uint32_t index = 0; index != categories.size(); ++index ) {
+		cout << "processing category " << categories[index] << endl;
+		string currentCategory = databaseDir + '/' + categories[index];
+		vector<string> filelist;
+		GetFileList( currentCategory, &filelist);
+		for ( vector<string>::iterator fileindex = filelist.begin(); fileindex != filelist.end(); ++fileindex ) {
+			string filepath = currentCategory + '/' + *fileindex;
+			Mat image = imread( filepath );
+			if ( image.empty() ) {
+				continue; // maybe not an image file
+			}
+			vector<KeyPoint> keyPoints;
+			vector<KeyPoint> keyPoints01;
+			Mat descriptors;
+			detector -> detect( image, keyPoints01);
+
+                        for(uint32_t i=0; i<keyPoints01.size(); i++)
+                        {
+                                KeyPoint  myPoint;
+
+                                myPoint = keyPoints01[i];
+
+                                if (myPoint.size >= MIN_KPS) keyPoints.push_back(myPoint);
+                        }
+
+
+			extractor -> compute( image, keyPoints, descriptors );
+			if ( allDescriptors.empty() ) {
+				allDescriptors.create( 0, descriptors.cols, descriptors.type() );
+			}
+			allDescriptors.push_back( descriptors );
+		}
+		cout << "done processing category " << categories[index] << endl;
+	}
+	assert( !allDescriptors.empty() );
+	cout << "build vocabulary..." << endl;
+	BOWKMeansTrainer bowTrainer( wordCount );
+	Mat vocabulary = bowTrainer.cluster( allDescriptors );
+	cout << "done build vocabulary..." << endl;
+	return vocabulary;
+}
+
+void  opencv_llc_bow_Descriptor(Mat &image, Mat &vocabulary,  vector<KeyPoint> &key_points, Mat &llc_descriptor)
+{
+        //std::cout << "opencv_llc_bow_Descriptor" << std::endl;
+
+ 	Mat descriptors;
+
+        //Params params;
+
+        Ptr<DescriptorExtractor> extractor =params.descriptorExtractor;
+
+        extractor -> compute( image, key_points, descriptors );
+
+        int     knn = 5;
+        float  fbeta = 1e-4;
+
+        vector<vector<DMatch> > matches;
+
+        //Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create( "BruteForce" );
+        //Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create( "FlannBased" );
+
+		Ptr<DescriptorMatcher> matcher = params.descriptorMatcher;
+        matcher -> knnMatch( descriptors, vocabulary, matches, knn );
+
+        Mat  des_mat_r01;
+        for (int icx=0; icx<descriptors.rows; icx++)
+        {
+                des_mat_r01 = descriptors.row(icx);
+
+                vector<DMatch> &matchesv1 = matches[icx];
+
+                Mat  mat_cbknn;
+
+                mat_cbknn.release();
+
+
+                for (int i=0; i<knn; i++)
+                {
+                        Mat  mat_idx01 = vocabulary.row(matchesv1[i].trainIdx);
+
+                        mat_cbknn.push_back(mat_idx01);
+                }
+                //std::cout << "mat_cbknn size : " << mat_cbknn.rows << "  " << mat_cbknn.cols << std::endl;
+
+                Mat  ll_mat = Mat::eye(knn, knn, CV_32FC1);
+                Mat  z_mat = mat_cbknn - repeat(des_mat_r01, 5, 1);
+                Mat  one_mat = Mat::ones(knn, 1, CV_32FC1);
+                Mat  c_mat = z_mat*z_mat.t();
+
+                float  ftrace = trace(c_mat).val[0];
+
+                c_mat = c_mat + ll_mat*fbeta*ftrace;
+
+                Mat  w_mat = c_mat.inv()*one_mat;
+
+                w_mat = w_mat/sum(w_mat).val[0];
+
+                w_mat = w_mat.t();
+
+                for (int i=0; i<knn; i++)
+                {
+                        llc_descriptor.at<float>(0, matchesv1[i].trainIdx) += w_mat.at<float>(0,i);
+                }
+        }
+
+        llc_descriptor = llc_descriptor/(descriptors.rows*1.0);
+}
+
+
+// bag of words of an image as its descriptor, not keypoint descriptors
+void ComputeBowImageDescriptors( const string& databaseDir, Mat& vocabulary,
+								 const vector<string>& categories,
+								 const Ptr<FeatureDetector>& detector,
+								 const Ptr<DescriptorExtractor>& extractor,
+								 Ptr<BOWImgDescriptorExtractor>& bowExtractor,
+								 const string& imageDescriptorsDir,
+								 map<string, Mat>* samples) {
+
+        std::cout << "vocabulary rows cols = " << vocabulary.rows << "  " << vocabulary.cols << std::endl;
+
+	for (uint32_t  i = 0; i != categories.size(); ++i ) {
+		string currentCategory = databaseDir + '/' + categories[i];
+		vector<string> filelist;
+		GetFileList( currentCategory, &filelist);
+		for ( vector<string>::iterator fileitr = filelist.begin(); fileitr != filelist.end(); ++fileitr ) {
+			string descriptorFileName = imageDescriptorsDir + "/" + categories[i] + "_" + ( *fileitr ) + ".xml";
+
+			std::cout << "bow: " << descriptorFileName << std::endl;
+
+			FileStorage fs( descriptorFileName, FileStorage::READ );
+			Mat imageDescriptor;
+			if ( fs.isOpened() ) { // already cached
+				fs["imageDescriptor"] >> imageDescriptor;
+			} else {
+				string filepath = currentCategory + '/' + *fileitr;
+				Mat image = imread( filepath );
+				if ( image.empty() ) {
+					continue; // maybe not an image file
+				}
+				vector<KeyPoint> keyPoints;
+				vector<KeyPoint> keyPoints01;
+
+				detector -> detect( image, keyPoints01 );
+
+                                for(uint32_t i=0; i<keyPoints01.size(); i++)
+                                {
+                                        KeyPoint  myPoint;
+
+                                        myPoint = keyPoints01[i];
+
+                                        if (myPoint.size >= MIN_KPS) keyPoints.push_back(myPoint);
+                                }
+
+
+                                imageDescriptor = Mat::zeros(1, VOCA_COLS, CV_32F);
+
+				opencv_llc_bow_Descriptor( image, vocabulary, keyPoints, imageDescriptor );
+
+				//std::cout << "imageDescriptor rows cols = " << imageDescriptor.rows << "  "
+                                                //<< imageDescriptor.cols << std::endl;
+
+				fs.open( descriptorFileName, FileStorage::WRITE );
+				if ( fs.isOpened() ) {
+					fs << "imageDescriptor" << imageDescriptor;
+				}
+			}
+			if ( samples -> count( categories[i] ) == 0 ) {
+				( *samples )[categories[i]].create( 0, imageDescriptor.cols, imageDescriptor.type() );
+			}
+			( *samples )[categories[i]].push_back( imageDescriptor );
+		}
+	}
+}
+
+void TrainSvm( const map<string, Mat>& samples, const string& category, const CvSVMParams& svmParams, CvSVM* svm ) {
+	Mat allSamples( 0, samples.at( category ).cols, samples.at( category ).type() );
+	Mat responses( 0, 1, CV_32SC1 );
+	//assert( responses.type() == CV_32SC1 );
+	allSamples.push_back( samples.at( category ) );
+	Mat posResponses( samples.at( category ).rows, 1, CV_32SC1, Scalar::all(1) );
+	responses.push_back( posResponses );
+
+	for (  map<string, Mat>::const_iterator itr = samples.begin(); itr != samples.end(); ++itr ) {
+		if ( itr -> first == category ) {
+			continue;
+		}
+		allSamples.push_back( itr -> second );
+		Mat response( itr -> second.rows, 1, CV_32SC1, Scalar::all( -1 ) );
+		responses.push_back( response );
+
+	}
+	svm -> train( allSamples, responses, Mat(), Mat(), svmParams );
+}
+
+void test()
+{
+
+	string  sample_name  = "Bicycle";
+	string  test_dir  =  "data/imgs/Bicycle";
+	string  svms_dir = "data/result/svms";
+	string  voc_fn =  "data/result/vocabulary.xml";
+
+	Ptr<FeatureDetector> detector = params.featureDetector;
+	Ptr<DescriptorExtractor> extractor = params.descriptorExtractor;
+
+	vector<string>  imgs_fns;
+	vector<string>  names_img_class;
+	vector<string>  svms_fns;
+
+	GetFileList( svms_dir, &svms_fns );
+	GetFileList( test_dir, &imgs_fns );
+
+	map<string, CvSVM*>  svms_map;
+
+
+	for ( vector<string>::iterator itr = svms_fns.begin(); itr != svms_fns.end();  itr++)
+	{
+		string   svm_fn = *itr;
+
+		int  n = svm_fn.find(".xml");
+
+		string   name_ic;
+
+		name_ic.assign(svm_fn, 0, n);
+
+		//std::cout << "name_ic = " << name_ic << std::endl;
+
+		CvSVM  *psvm = new CvSVM;
+
+		string svmFileName = svms_dir + "/" + svm_fn;
+
+		FileStorage fs( svmFileName, FileStorage::READ );
+		if ( fs.isOpened() )
+		{
+			fs.release();
+			psvm->load( svmFileName.c_str() );
+
+			svms_map.insert(pair<string, CvSVM*>(name_ic, psvm));
+		}
+		else
+		{
+			std::cout << "svm : " << svmFileName << " can not load " << std::endl;
+			exit(-1);
+		}
+
+		std::cout << name_ic << " svm :  " << svmFileName << std::endl;
+	}
+
+	Mat vocabulary;
+	std::string vocabularyFile =  voc_fn;
+
+	FileStorage fs( vocabularyFile, FileStorage::READ );
+	if ( fs.isOpened() )  fs["vocabulary"] >> vocabulary;
+
+	std::cout << "vocabularyFile :  " << vocabularyFile << std::endl;
+	std::cout << "vocabulary rows cols = " << vocabulary.rows << "  " << vocabulary.cols << std::endl;
+
+	std::cout << sample_name << " test...  " << std::endl;
+
+	int  num_correct = 0;
+
+	for ( vector<string>::iterator itr = imgs_fns.begin(); itr != imgs_fns.end();  itr++)
+	{
+
+
+		string  category;
+
+		string  img_fn = *itr;
+
+		string  queryImage = test_dir + "/" + img_fn;
+
+		Mat image = imread( queryImage );
+		const clock_t begin_time = clock();
+		vector<KeyPoint> keyPoints;
+		vector<KeyPoint> keyPoints01;
+		detector -> detect( image, keyPoints01 );
+
+
+		for(uint32_t i=0; i<keyPoints01.size(); i++)
+		{
+			KeyPoint  myPoint;
+
+			myPoint = keyPoints01[i];
+
+			if (myPoint.size >= MIN_KPS) keyPoints.push_back(myPoint);
+		}
+
+		Mat queryDescriptor;
+
+		queryDescriptor = Mat::zeros(1, VOCA_COLS, CV_32F);
+
+		opencv_llc_bow_Descriptor( image, vocabulary, keyPoints, queryDescriptor );
+
+		int sign = 0; //sign of the positive class
+		float confidence = -FLT_MAX;
+		for (map<string, CvSVM*>::const_iterator itr = svms_map.begin(); itr != svms_map.end(); ++itr )
+		{
+			CvSVM  *psvm = itr->second;
+
+			if ( sign == 0 ) {
+
+				float scoreValue = psvm->predict( queryDescriptor, true );
+				float classValue = psvm->predict( queryDescriptor, false );
+				sign = ( scoreValue < 0.0f ) == ( classValue < 0.0f )? 1 : -1;
+
+			}
+			float curConfidence = sign * psvm->predict( queryDescriptor, true );
+			if ( curConfidence > confidence ) {
+				confidence = curConfidence;
+				category = itr -> first;
+			}
+
+		}
+
+		std::cout << queryImage << " : " << category << std::endl;
+
+		if (sample_name == category) num_correct++;
+		std::cout << "Time spent detect:" <<float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << endl;
+	}
+
+
+	std::cout << num_correct << " " << imgs_fns.size() << " " << num_correct*1.0/imgs_fns.size() << std::endl;
+	system("pause");
+}

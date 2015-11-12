@@ -19,7 +19,7 @@ bool ImagePreprocessor::loadAndPreprocessImage(const string& filename, Mat& imag
 		try {
 			imageLoadedOut = imread(filename, loadFlags);
 			if (!imageLoadedOut.data) { return false; }
-			preprocessImage(imageLoadedOut, useCVHighGUI);
+				preprocessImage(imageLoadedOut, useCVHighGUI);
 			return true;
 		} catch (...) {
 			return false;
