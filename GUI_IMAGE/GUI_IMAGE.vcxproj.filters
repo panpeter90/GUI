@@ -25,6 +25,15 @@
     <Filter Include="Source Files\libs">
       <UniqueIdentifier>{e5e236c7-4e7c-42eb-842e-b5084c18891a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\package_bgs">
+      <UniqueIdentifier>{27405126-445a-430e-b123-a6a4ede299f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\package_tracking">
+      <UniqueIdentifier>{aff744c7-dd8c-42c0-9e9d-8fcd55f3d926}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VideoCapture">
+      <UniqueIdentifier>{19846933-f2e4-4da8-b7d9-af8cdb056c6b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -132,6 +141,24 @@
     <ClInclude Include="dirent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="traffic\package_bgs\FrameDifferenceBGS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\package_bgs\IBGS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\package_tracking\cvblob\cvblob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\package_tracking\BlobTracking.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\VideoCapture\Config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="traffic\VideoCapture\VideoCapture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GUI_IMAGE.cpp">
@@ -205,6 +232,21 @@
     </ClCompile>
     <ClCompile Include="traffic\libs\TimeUtils.cpp">
       <Filter>Source Files\libs</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\VideoCapture\VideoCapture.cpp">
+      <Filter>Source Files\VideoCapture</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\package_tracking\cvblob\cvblob.cpp">
+      <Filter>Source Files\package_tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\package_tracking\cvblob\cvlabel.cpp">
+      <Filter>Source Files\package_tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\package_tracking\BlobTracking.cpp">
+      <Filter>Source Files\package_tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="traffic\package_bgs\FrameDifferenceBGS.cpp">
+      <Filter>Source Files\package_bgs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

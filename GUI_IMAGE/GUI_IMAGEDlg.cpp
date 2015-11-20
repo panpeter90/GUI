@@ -38,6 +38,10 @@
 #include <windows.h>
 #include <ctime>
 #include <string>
+//BGS
+#include "traffic/package_bgs/FrameDifferenceBGS.h"
+#include "traffic/package_tracking/BlobTracking.h"
+#include "traffic/VideoCapture/VideoCapture.h"
 
 #define MAX_PATH 512
 
@@ -605,13 +609,18 @@ void CGUI_IMAGEDlg::OnBnClickedOk() //exit button
 
 void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 {
-	if(is_sparse_coding){
+	/*if(is_sparse_coding){
 		test();
 	}else{
 		imageAnalysis.processImage(file_name);
 		UpdateLabelOne();
-	}
-
+	}*/
+	ViCapture* videoCapture;
+	videoCapture = new ViCapture;
+	videoCapture->setVideo("D:/video/100ANV01/9.MP4");
+	videoCapture->setUpVideo();
+	videoCapture->start();
+	system("pause");
 }
 
 void CGUI_IMAGEDlg::OnBnClickedCheck1()

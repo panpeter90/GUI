@@ -135,6 +135,12 @@
     <ClInclude Include="traffic\ImageAnalysis\ImageUtils.h" />
     <ClInclude Include="traffic\libs\PerformanceTimer.h" />
     <ClInclude Include="traffic\libs\TimeUtils.h" />
+    <ClInclude Include="traffic\package_bgs\FrameDifferenceBGS.h" />
+    <ClInclude Include="traffic\package_bgs\IBGS.h" />
+    <ClInclude Include="traffic\package_tracking\BlobTracking.h" />
+    <ClInclude Include="traffic\package_tracking\cvblob\cvblob.h" />
+    <ClInclude Include="traffic\VideoCapture\Config.h" />
+    <ClInclude Include="traffic\VideoCapture\VideoCapture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GUI_IMAGE.cpp" />
@@ -164,6 +170,11 @@
     <ClCompile Include="traffic\ImageAnalysis\ImageUtils.cpp" />
     <ClCompile Include="traffic\libs\PerformanceTimer.cpp" />
     <ClCompile Include="traffic\libs\TimeUtils.cpp" />
+    <ClCompile Include="traffic\package_bgs\FrameDifferenceBGS.cpp" />
+    <ClCompile Include="traffic\package_tracking\BlobTracking.cpp" />
+    <ClCompile Include="traffic\package_tracking\cvblob\cvblob.cpp" />
+    <ClCompile Include="traffic\package_tracking\cvblob\cvlabel.cpp" />
+    <ClCompile Include="traffic\VideoCapture\VideoCapture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GUI_IMAGE.rc" />

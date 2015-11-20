@@ -5,6 +5,7 @@
 #pragma once
 #include "afxwin.h"
 #include "afxcmn.h"
+#include "Resource.h"
 
 
 // CGUI_IMAGEDlg dialog
