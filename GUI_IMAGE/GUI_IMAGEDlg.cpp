@@ -1,7 +1,6 @@
 
 // GUI_IMAGEDlg.cpp : implementation file
 //
-
 #include "stdafx.h"
 #include "GUI_IMAGE.h"
 #include "GUI_IMAGEDlg.h"
@@ -103,13 +102,9 @@ Mat BuildVocabulary( const string& databaseDir,
 void  opencv_llc_bow_Descriptor(Mat &image, Mat &vocabulary,  vector<KeyPoint> &key_points, Mat &llc_descriptor);
 void  train();
 void test();
-//
+void PrepareForPredict();
+void test_single_image(Mat predictImage);
 
-enum                             {cBLACK=0,cWHITE, cGREY, cRED, cORANGE, cYELLOW, cGREEN, cAQUA, cBLUE, cPURPLE, cPINK,  NUM_COLOR_TYPES};
-char* sCTypes[NUM_COLOR_TYPES] = {"Black", "White","Grey","Red","Orange","Yellow","Green","Aqua","Blue","Purple","Pink"};
-uchar cCTHue[NUM_COLOR_TYPES] =    {0,       0,      0,     0,     20,      30,      55,    85,   115,    138,     161};
-uchar cCTSat[NUM_COLOR_TYPES] =    {0,       0,      0,    255,   255,     255,     255,   255,   255,    255,     255};
-uchar cCTVal[NUM_COLOR_TYPES] =    {0,      255,    120,   255,   255,     255,     255,   255,   255,    255,     255};
 //param
 class Params {
 public:
@@ -120,130 +115,13 @@ public:
 	Ptr<DescriptorMatcher> descriptorMatcher;
 };
 
-CvScalar text_color= {255,255,255,0};
-/* Face Detection HaarCascade Classifier file */
-const char* cascadeFileFace = "haarcascades\\haarcascade_frontalface_alt.xml";
-CvHaarClassifierCascade* cascadeFace;
 string file_name="";
 string video_name="";
 bool is_image = true;
 bool is_exit = false;
 bool is_sparse_coding = false;
 Params params;
-/***********************************************************************
-Function:  Draw a rectangle around the given object (defaults to a red color)
-Input: - Image
-	   - CvRect
-	   - Color
-*****************************************************************************/
-void drawRectangle(IplImage *img, CvRect face, CvScalar col)	{
-	CvPoint p1, p2;
-	p1.x = face.x;
-	p1.y = face.y;
-	p2.x = face.x + face.width;
-	p2.y = face.y + face.height;
-	cvRectangle(img, p1, p2, col, 2);
-}
-/***********************************************************************
-Function: Returns a new image that is a cropped version of the original image. 
-Input: Image and CvRect
-Output: New image
-************************************************************************/
-IplImage* cropRectangle(IplImage *img, CvRect region)
-{
-	IplImage *imageTmp,*imageRGB;
-	CvSize size;
-	size.height = img->height;
-	size.width = img-> width;
-	if (img->depth != IPL_DEPTH_8U) {
-		std::cerr << "ERROR: Unknown image depth of " << img->depth << " given in cropRectangle() instead of 8." << std::endl;
-		exit(1);
-	}
-	// First create a new (color or greyscale) IPL Image and copy contents of img into it.
-	imageTmp = cvCreateImage(size, IPL_DEPTH_8U, img->nChannels);
-	cvCopy(img, imageTmp);
-	cvSetImageROI(imageTmp, region);
-	// Copy region of interest (i.e. face) into a new iplImage (imageRGB) and return it
-	size.width = region.width;
-	size.height = region.height;
-	imageRGB = cvCreateImage(size, IPL_DEPTH_8U, img->nChannels);
-	cvCopy(imageTmp, imageRGB);	// Copy just the region.
 
-    cvReleaseImage( &imageTmp );
-	return imageRGB;		
-}
-/**********************************************************************
-Function : Detect face use haarcascades classifier
-Input: pImage , haarcascades classifier
-Output: List of rectangle for detect region
-**********************************************************************/
-vector<CvRect> findObjectsInImage(IplImage *origImg, CvHaarClassifierCascade* cascade, CvSize minFeatureSize = cvSize(20, 20))
-{
-	CvMemStorage* storage;
-	vector<CvRect> detRects;
-	storage = cvCreateMemStorage(0);
-	cvClearMemStorage( storage );
-
-	IplImage *detectImg = origImg;	/* Assume the input image is to be used.*/
-	IplImage *greyImg = 0;
-	/*if the image is color we change to grey image */
-	if (origImg->nChannels > 1) {
-		greyImg = cvCreateImage(cvSize(origImg->width, origImg->height), 8, 1 );
-		cvCvtColor( origImg, greyImg, CV_BGR2GRAY );
-		detectImg = greyImg;
-	}
-	/*Detect face in image */
-	CvSeq* rects = cvHaarDetectObjects( detectImg, cascade, storage,
-                                        1.1, 2, CV_HAAR_DO_CANNY_PRUNING,
-                                        minFeatureSize );
-	/*Get detected region*/	
-	for(int i = 0; i < (rects ? rects->total : 0); i++ )
-	{
-        CvRect *r = (CvRect*)cvGetSeqElem( rects, i );
-		detRects.push_back(*r);
-    }
-	/*cvReleaseHaarClassifierCascade( &cascade )*/
-	if (greyImg)
-		cvReleaseImage( &greyImg );
-	cvReleaseMemStorage( &storage );
-	return detRects;
-}
-/******************************************************************************
-Function: Get color of a pixel
-Input: HSV value
-Output: Color type between 0 to NUM_COLOR_TYPES
-******************************************************************************/
-int getPixelColorType(int H, int S, int V)
-{
-	int color;
-	if (V < 75)
-		color = cBLACK;
-	else if (V > 190 && S < 27)
-		color = cWHITE;
-	else if (S < 53 && V < 185)
-		color = cGREY;
-	else {	// Is a color
-		if (H < 14)
-			color = cRED;
-		else if (H < 25)
-			color = cORANGE;
-		else if (H < 34)
-			color = cYELLOW;
-		else if (H < 73)
-			color = cGREEN;
-		else if (H < 102)
-			color = cAQUA;
-		else if (H < 127)
-			color = cBLUE;
-		else if (H < 149)
-			color = cPURPLE;
-		else if (H < 175)
-			color = cPINK;
-		else	// full circle 
-			color = cRED;	// back to Red
-	}
-	return color;
-}
 void MakeDir( const string& filepath )
 {
 	char path[MAX_PATH];
@@ -288,7 +166,6 @@ void GetFileList( const string& directory, vector<string>* filelist )
 
 }
 
-static void ImageDisplay(cv::Mat src_); //MINHNT
 
 class CAboutDlg : public CDialogEx
 {
@@ -388,7 +265,6 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
-	cascadeFace = (CvHaarClassifierCascade*)cvLoad(cascadeFileFace, 0, 0, 0 );
 	namedWindow("DisplayImage",1);
 	HWND hWnd =(HWND)cvGetWindowHandle("DisplayImage");
 	HWND hParent=::GetParent(hWnd);
@@ -621,6 +497,12 @@ void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 	videoCapture->setUpVideo();
 	videoCapture->start();
 	system("pause");
+	/*PrepareForPredict();
+	Mat image = imread("D:/video/example.jpg");
+	imshow("Hello",image);
+
+	test_single_image(image);
+	system("pause");*/
 }
 
 void CGUI_IMAGEDlg::OnBnClickedCheck1()
@@ -1187,27 +1069,21 @@ void TrainSvm( const map<string, Mat>& samples, const string& category, const Cv
 	svm -> train( allSamples, responses, Mat(), Mat(), svmParams );
 }
 
-void test()
-{
 
-	string  sample_name  = "Bicycle";
-	string  test_dir  =  "data/imgs/Bicycle";
+Mat vocabulary_sparse;
+map<string, CvSVM*> svms_map_sparse;
+Ptr<FeatureDetector> detector_sparse;
+Ptr<DescriptorExtractor> extractor_sparse ;
+
+void PrepareForPredict(){
+
 	string  svms_dir = "data/result/svms";
 	string  voc_fn =  "data/result/vocabulary.xml";
-
-	Ptr<FeatureDetector> detector = params.featureDetector;
-	Ptr<DescriptorExtractor> extractor = params.descriptorExtractor;
-
-	vector<string>  imgs_fns;
-	vector<string>  names_img_class;
 	vector<string>  svms_fns;
 
+	detector_sparse = params.featureDetector;
+	extractor_sparse = params.descriptorExtractor;
 	GetFileList( svms_dir, &svms_fns );
-	GetFileList( test_dir, &imgs_fns );
-
-	map<string, CvSVM*>  svms_map;
-
-
 	for ( vector<string>::iterator itr = svms_fns.begin(); itr != svms_fns.end();  itr++)
 	{
 		string   svm_fn = *itr;
@@ -1230,7 +1106,7 @@ void test()
 			fs.release();
 			psvm->load( svmFileName.c_str() );
 
-			svms_map.insert(pair<string, CvSVM*>(name_ic, psvm));
+			svms_map_sparse.insert(pair<string, CvSVM*>(name_ic, psvm));
 		}
 		else
 		{
@@ -1241,14 +1117,26 @@ void test()
 		std::cout << name_ic << " svm :  " << svmFileName << std::endl;
 	}
 
-	Mat vocabulary;
 	std::string vocabularyFile =  voc_fn;
 
 	FileStorage fs( vocabularyFile, FileStorage::READ );
-	if ( fs.isOpened() )  fs["vocabulary"] >> vocabulary;
+	if ( fs.isOpened() )  fs["vocabulary"] >> vocabulary_sparse;
 
 	std::cout << "vocabularyFile :  " << vocabularyFile << std::endl;
-	std::cout << "vocabulary rows cols = " << vocabulary.rows << "  " << vocabulary.cols << std::endl;
+	std::cout << "vocabulary rows cols = " << vocabulary_sparse.rows << "  " << vocabulary_sparse.cols << std::endl;
+}
+
+
+void test()
+{
+
+	string  sample_name  = "Car";
+	string  test_dir  =  "data/imgs/Car";
+
+	vector<string>  imgs_fns;
+	vector<string>  names_img_class;
+	PrepareForPredict();
+	GetFileList( test_dir, &imgs_fns );
 
 	std::cout << sample_name << " test...  " << std::endl;
 
@@ -1268,7 +1156,7 @@ void test()
 		const clock_t begin_time = clock();
 		vector<KeyPoint> keyPoints;
 		vector<KeyPoint> keyPoints01;
-		detector -> detect( image, keyPoints01 );
+		detector_sparse -> detect( image, keyPoints01 );
 
 
 		for(uint32_t i=0; i<keyPoints01.size(); i++)
@@ -1284,11 +1172,11 @@ void test()
 
 		queryDescriptor = Mat::zeros(1, VOCA_COLS, CV_32F);
 
-		opencv_llc_bow_Descriptor( image, vocabulary, keyPoints, queryDescriptor );
+		opencv_llc_bow_Descriptor( image, vocabulary_sparse, keyPoints, queryDescriptor );
 
 		int sign = 0; //sign of the positive class
 		float confidence = -FLT_MAX;
-		for (map<string, CvSVM*>::const_iterator itr = svms_map.begin(); itr != svms_map.end(); ++itr )
+		for (map<string, CvSVM*>::const_iterator itr = svms_map_sparse.begin(); itr != svms_map_sparse.end(); ++itr )
 		{
 			CvSVM  *psvm = itr->second;
 
@@ -1313,7 +1201,317 @@ void test()
 		std::cout << "Time spent detect:" <<float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << endl;
 	}
 
-
 	std::cout << num_correct << " " << imgs_fns.size() << " " << num_correct*1.0/imgs_fns.size() << std::endl;
 	system("pause");
+}
+
+
+
+void test_single_image (Mat predictImage){
+
+
+	//Mat image = imread( predictImage );
+	const clock_t begin_time = clock();
+	vector<KeyPoint> keyPoints;
+	vector<KeyPoint> keyPoints01;
+	detector_sparse -> detect( predictImage, keyPoints01 );
+	string  category;
+	for(uint32_t i=0; i<keyPoints01.size(); i++)
+	{
+		KeyPoint  myPoint;
+
+		myPoint = keyPoints01[i];
+
+		if (myPoint.size >= MIN_KPS) keyPoints.push_back(myPoint);
+	}
+
+	Mat queryDescriptor;
+
+	queryDescriptor = Mat::zeros(1, VOCA_COLS, CV_32F);
+
+	opencv_llc_bow_Descriptor( predictImage, vocabulary_sparse, keyPoints, queryDescriptor );
+
+	int sign = 0; //sign of the positive class
+	float confidence = -FLT_MAX;
+	for (map<string, CvSVM*>::const_iterator itr = svms_map_sparse.begin(); itr != svms_map_sparse.end(); ++itr )
+	{
+		CvSVM  *psvm = itr->second;
+
+		if ( sign == 0 ) {
+
+			float scoreValue = psvm->predict( queryDescriptor, true );
+			float classValue = psvm->predict( queryDescriptor, false );
+			sign = ( scoreValue < 0.0f ) == ( classValue < 0.0f )? 1 : -1;
+
+		}
+		float curConfidence = sign * psvm->predict( queryDescriptor, true );
+		if ( curConfidence > confidence ) {
+			confidence = curConfidence;
+			category = itr -> first;
+		}
+
+	}
+	std::cout << "Image is " << " : " << category << std::endl;
+	//system("pause");
+}
+
+namespace VC_ROI
+{
+	IplImage* img_input1 = 0;
+	IplImage* img_input2 = 0;
+	int roi_x0 = 0;
+	int roi_y0 = 0;
+	int roi_x1 = 0;
+	int roi_y1 = 0;
+	int numOfRec = 0;
+	int startDraw = 0;
+	bool roi_defined = false;
+	bool use_roi = true;
+	bool disable_event = false;
+
+	void reset(void)
+	{
+		disable_event = false;
+		startDraw = false;
+	}
+
+	void VideoCapture_on_mouse(int evt, int x, int y, int flag, void* param)
+	{
+		if(use_roi == false || disable_event == true)
+			return;
+
+		if(evt == CV_EVENT_LBUTTONDOWN)
+		{
+			if(!startDraw)
+			{
+				roi_x0 = x;
+				roi_y0 = y;
+				startDraw = 1;
+			}
+			else
+			{
+				roi_x1 = x;
+				roi_y1 = y;
+				startDraw = 0;
+				roi_defined = true;
+				disable_event = true;
+			}
+		}
+
+		if(evt == CV_EVENT_MOUSEMOVE && startDraw)
+		{
+			//redraw ROI selection
+			img_input2 = cvCloneImage(img_input1);
+			cvRectangle(img_input2, cvPoint(roi_x0,roi_y0), cvPoint(x,y), CV_RGB(255,0,0), 1);
+			cvShowImage("Input", img_input2);
+			cvReleaseImage(&img_input2);
+			//startDraw = false;
+			//disable_event = true;
+		}
+	}
+}
+
+void ViCapture::setVideo(std::string filename)
+{
+	useVideo = true;
+	videoFileName = filename;
+}
+void ViCapture::setUpVideo()
+{
+	capture = cvCaptureFromFile(videoFileName.c_str());
+
+	if(!capture)
+		std::cerr << "Cannot open video file "<< videoFileName << std::endl;
+}
+void ViCapture::start()
+{
+
+	loadConfig();
+	PrepareForPredict();
+	if(!capture)  std::cerr << "Capture error..." << std::endl;
+
+	int input_fps = cvGetCaptureProperty(capture,CV_CAP_PROP_FPS);
+	std::cout << "input->fps:" << input_fps << std::endl;
+	IBGS *bgs;
+	//bgs = new PixelBasedAdaptiveSegmenter;
+	bgs = new FrameDifferenceBGS ;
+	IplImage* frame1 = cvQueryFrame(capture);
+	frame = cvCreateImage(cvSize((int)((frame1->width*input_resize_percent)/100) , (int)((frame1->height*input_resize_percent)/100)), frame1->depth, frame1->nChannels);
+	//cvCreateImage(cvSize(frame1->width/input_resize_factor, frame1->height/input_resize_factor), frame1->depth, frame1->nChannels);
+	std::cout << "input->resize_percent:" << input_resize_percent << std::endl;
+	std::cout << "input->width:" << frame->width << std::endl;
+	std::cout << "input->height:" << frame->height << std::endl;
+	//Blob Tracking Algorithm 
+	cv::Mat img_blob;
+	BlobTracking* blobTracking;
+	blobTracking = new BlobTracking;
+	//end
+	//
+	int frameignore = 0;
+	//
+	cv::Mat img_mask;
+	cv::Mat img_model_bg;
+	double loopDelay = 33.333;
+	if(input_fps > 0)
+		loopDelay = (1./input_fps)*1000.;
+	std::cout << "loopDelay:" << loopDelay << std::endl;
+
+	bool firstTime = true;
+	bool hasResult = false;	
+	bool isblob = true;
+	Mat imagepredict;
+	do
+	{
+		frameNumber++;
+
+		frame1 = cvQueryFrame(capture);
+		if(!frame1) break;
+
+		ImageDisplay(frame1); //display input full size
+		cvResize(frame1, frame);
+		if(enableFlip)
+			cvFlip(frame, frame, 0);
+
+		if(VC_ROI::use_roi == true && VC_ROI::roi_defined == false && firstTime == true)
+		{
+			VC_ROI::reset();
+
+			do
+			{
+				cv::Mat img_input(frame);
+
+				if(showOutput)
+				{
+					cv::imshow("Input", img_input);
+					std::cout << "Set ROI (press ESC to skip)" << std::endl;
+					VC_ROI::img_input1 = new IplImage(img_input);
+					cvSetMouseCallback("Input", VC_ROI::VideoCapture_on_mouse, NULL);
+					key = cvWaitKey(0);
+					delete VC_ROI::img_input1;
+				}
+				else
+					key = KEY_ESC;
+
+				if(key == KEY_ESC)
+				{
+					std::cout << "ROI disabled" << std::endl;
+					VC_ROI::reset();
+					VC_ROI::use_roi = false;
+					break;
+				}
+
+				if(VC_ROI::roi_defined)
+				{
+					std::cout << "ROI defined (" << VC_ROI::roi_x0 << "," << VC_ROI::roi_y0 << "," << VC_ROI::roi_x1 << "," << VC_ROI::roi_y1 << ")" << std::endl;
+					break;
+				}
+				else
+					std::cout << "ROI undefined" << std::endl;
+
+			}while(1);
+		}
+
+		if(VC_ROI::use_roi == true && VC_ROI::roi_defined == true)
+		{
+			CvRect rect = cvRect(VC_ROI::roi_x0, VC_ROI::roi_y0, VC_ROI::roi_x1 - VC_ROI::roi_x0, VC_ROI::roi_y1 - VC_ROI::roi_y0);
+			cvSetImageROI(frame, rect);
+		}
+		cv::Mat img_input(frame);
+
+		if(showOutput)
+			cv::imshow("Input", img_input);
+
+		if(firstTime)
+			saveConfig();
+
+		const clock_t begin_time1 = clock();
+		bgs->process(img_input, img_mask,img_model_bg);
+		std::cout << "Time spent bgs:" <<float( clock () - begin_time1 )/CLOCKS_PER_SEC << "\n" << std::endl ;
+		const clock_t begin_time = clock();
+		if(!img_mask.empty())
+		{
+			
+			if(isblob == false){
+				frameignore++;
+				if(frameignore >= 30) {
+					isblob = true;
+					frameignore = 0;
+				}
+			}
+			std::cout << "frameignore :" << frameignore << "\n" << std::endl ;
+			
+			blobTracking->process(img_input, img_mask, img_blob, hasResult, imagepredict, isblob);
+			std::cout << "hasResult: " << hasResult << std::endl ;
+			cv::imshow("img_blob", img_blob);
+			if(hasResult){
+			isblob = false ;
+			cv::imshow("imagepredict", imagepredict);
+			test_single_image(imagepredict);
+			//imageAnalysis.processImage(imagepredict);
+			//system("pause");
+			}
+			// Perform vehicle counting
+			//vehicleCouting->setInput(img_blob);
+			//vehicleCouting->setTracks(blobTracking->getTracks());
+			//vehicleCouting->process();
+			std::cout << "Time spent blobTracking:" << float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << std::endl ;
+		}
+		//cv::imshow("img_mask", img_mask);
+		//std::cout << "delta_time: " << delta_time << std::endl;
+
+		cvResetImageROI(frame);
+
+		key = cvWaitKey(loopDelay);
+		//std::cout << "key: " << key << std::endl;
+
+		if(key == KEY_SPACE)
+			key = cvWaitKey(0);
+
+		if(key == KEY_ESC)
+			break;
+
+		if(stopAt > 0 && stopAt == frameNumber)
+			key = cvWaitKey(0);
+
+		firstTime = false;
+
+	} while(1);
+
+	cvReleaseCapture(&capture);
+}
+
+void ViCapture::saveConfig()
+{
+	CvFileStorage* fs = cvOpenFileStorage("./config/VideoCapture.xml", 0, CV_STORAGE_WRITE);
+
+	cvWriteInt(fs, "stopAt", stopAt);
+	cvWriteInt(fs, "input_resize_percent", input_resize_percent);
+	cvWriteInt(fs, "enableFlip", enableFlip);
+	cvWriteInt(fs, "use_roi", VC_ROI::use_roi);
+	cvWriteInt(fs, "roi_defined", VC_ROI::roi_defined);
+	cvWriteInt(fs, "roi_x0", VC_ROI::roi_x0);
+	cvWriteInt(fs, "roi_y0", VC_ROI::roi_y0);
+	cvWriteInt(fs, "roi_x1", VC_ROI::roi_x1);
+	cvWriteInt(fs, "roi_y1", VC_ROI::roi_y1);
+	cvWriteInt(fs, "showOutput", showOutput);
+
+	cvReleaseFileStorage(&fs);
+}
+
+void ViCapture::loadConfig()
+{
+	CvFileStorage* fs = cvOpenFileStorage("./config/VideoCapture.xml", 0, CV_STORAGE_READ);
+
+	stopAt = cvReadIntByName(fs, 0, "stopAt", 0);
+	input_resize_percent = cvReadIntByName(fs, 0, "input_resize_percent", 100);
+	enableFlip = cvReadIntByName(fs, 0, "enableFlip", false);
+	VC_ROI::use_roi = cvReadIntByName(fs, 0, "use_roi", true);
+	VC_ROI::roi_defined = cvReadIntByName(fs, 0, "roi_defined", false);
+	VC_ROI::roi_x0 = cvReadIntByName(fs, 0, "roi_x0", 0);
+	VC_ROI::roi_y0 = cvReadIntByName(fs, 0, "roi_y0", 0);
+	VC_ROI::roi_x1 = cvReadIntByName(fs, 0, "roi_x1", 0);
+	VC_ROI::roi_y1 = cvReadIntByName(fs, 0, "roi_y1", 0);
+	showOutput = cvReadIntByName(fs, 0, "showOutput", true);
+
+	cvReleaseFileStorage(&fs);
 }

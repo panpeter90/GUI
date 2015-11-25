@@ -19,11 +19,13 @@ const cvb::CvTracks BlobTracking::getTracks()
   return tracks;
 }
 
-void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv::Mat &img_output)
+void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv::Mat &img_output,  bool &hasResult, cv::Mat &imagepredict, bool isblob )
 {
+	
   if(img_input.empty() || img_mask.empty())
     return;
   loadConfig();
+  hasResult = false;
   //if(firstTime)
   //  saveConfig();
   cv::Mat img_final;
@@ -46,40 +48,51 @@ void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv
   IplImage* labelImg = cvCreateImage(cvGetSize(frame), IPL_DEPTH_LABEL, 1);
 
   cvb::CvBlobs blobs;
-  unsigned int result = cvb::cvLabel(segmentated, labelImg, blobs);
-  
-  //cvb::cvFilterByArea(blobs, 1500, 20000);
 
-  cvb::cvFilterByArea(blobs, minArea, maxArea);
+  if(isblob) {
+	  unsigned int result = cvb::cvLabel(segmentated, labelImg, blobs);
   
-  //cvb::cvRenderBlobs(labelImg, blobs, frame, frame, CV_BLOB_RENDER_BOUNDING_BOX);
-  if(debugBlob)
-    cvb::cvRenderBlobs(labelImg, blobs, frame, frame, CV_BLOB_RENDER_BOUNDING_BOX|CV_BLOB_RENDER_CENTROID|CV_BLOB_RENDER_ANGLE|CV_BLOB_RENDER_TO_STD);
-  else
-  cvb::cvRenderBlobs(labelImg, blobs, frame, frame, CV_BLOB_RENDER_BOUNDING_BOX|CV_BLOB_RENDER_CENTROID);
+	  //cvb::cvFilterByArea(blobs, 1500, 20000);
 
-  //cvb::cvUpdateTracks(blobs, tracks, 200.,5);
+	  cvb::cvFilterByArea(blobs, minArea, maxArea);
   
-  //if(debugTrack)
-    //cvb::cvRenderTracks(tracks, frame, frame, CV_TRACK_RENDER_ID|CV_TRACK_RENDER_BOUNDING_BOX|CV_TRACK_RENDER_TO_STD);
- // else
-    //cvb::cvRenderTracks(tracks, frame, frame, CV_TRACK_RENDER_ID|CV_TRACK_RENDER_BOUNDING_BOX);
+	  //cvb::cvRenderBlobs(labelImg, blobs, frame, frame, CV_BLOB_RENDER_BOUNDING_BOX);
+	  if(debugBlob)
+		cvb::cvRenderBlobs(labelImg, blobs, frame, frame, CV_BLOB_RENDER_BOUNDING_BOX|CV_BLOB_RENDER_CENTROID|CV_BLOB_RENDER_ANGLE|CV_BLOB_RENDER_TO_STD);
+	  else
+	  cvb::cvRenderBlobs(labelImg, blobs, frame, frame, CV_BLOB_RENDER_BOUNDING_BOX|CV_BLOB_RENDER_CENTROID);
+
+	  //cvb::cvUpdateTracks(blobs, tracks, 200.,5);
   
-  //std::map<CvID, CvTrack *> CvTracks
-  for (cvb::CvBlobs::iterator it = blobs.begin(); it!=blobs.end(); ++it) {
-	  std::cout << (*it).second->centroid.x << "," << (*it).second->centroid.y  << std::endl;
-	  if((*it).second->centroid.x <= line_pos && (*it).second->centroid.x > line_pos - MARGIN){
-		  
-		  cvSetImageROI(example, cvRect((*it).second->minx, (*it).second->miny, (*it).second->maxx-(*it).second->minx, (*it).second->maxy-(*it).second->miny));
-		  cvShowImage("cvSetImageROI", example);
-		  cvSetImageROI(examplemask, cvRect((*it).second->minx, (*it).second->miny, (*it).second->maxx-(*it).second->minx, (*it).second->maxy-(*it).second->miny));
-		  cvShowImage("cvSetImageROIMask", examplemask);
-		  img_recognize.copyTo(img_final,img_mask);
-		  cv::imshow("InputOne", img_final);
-		  cv::imwrite("D:/video/example.jpg",img_final);
-		  //system("pause");
-	  }
-  }
+	  //if(debugTrack)
+		//cvb::cvRenderTracks(tracks, frame, frame, CV_TRACK_RENDER_ID|CV_TRACK_RENDER_BOUNDING_BOX|CV_TRACK_RENDER_TO_STD);
+	 // else
+		//cvb::cvRenderTracks(tracks, frame, frame, CV_TRACK_RENDER_ID|CV_TRACK_RENDER_BOUNDING_BOX);
+  
+	  //std::map<CvID, CvTrack *> CvTracks
+	  for (cvb::CvBlobs::iterator it = blobs.begin(); it!=blobs.end(); ++it) {
+		  std::cout << (*it).second->centroid.x << "," << (*it).second->centroid.y  << std::endl;
+		  //if((*it).second->centroid.x <= line_pos && (*it).second->centroid.x > line_pos - MARGIN){
+			if((*it).second->centroid.x <= line_pos){
+			  cvSetImageROI(example, cvRect((*it).second->minx, (*it).second->miny, (*it).second->maxx-(*it).second->minx, (*it).second->maxy-(*it).second->miny));
+			  //cvShowImage("cvSetImageROI", example);
+			  cvSetImageROI(examplemask, cvRect((*it).second->minx, (*it).second->miny, (*it).second->maxx-(*it).second->minx, (*it).second->maxy-(*it).second->miny));
+			  //cvShowImage("cvSetImageROIMask", examplemask);
+			  //cv::Mat img_final(example);
+			  //cv::Mat img_final_mask(examplemask);
+			  //cv::Mat img_final_recognize;
+			 // img_final.copyTo(img_final_recognize,img_final_mask);
+			  img_recognize.copyTo(img_final, img_mask);
+			  //cv::imshow("img_final_mask", img_final_mask);
+			  //cv::imshow("img_final", img_final);
+			  hasResult = true;
+			  img_final.copyTo(imagepredict);
+			  cv::imwrite("D:/video/example.jpg",imagepredict);
+			  //system("pause");
+
+		  }
+	  } //for
+  } // if(blob)
   //if(showOutput)
   //cvShowImage("Blob Tracking", frame);
   cv::Mat img_result(frame);
@@ -90,6 +103,8 @@ void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv
   cvReleaseImage(&labelImg);
   delete frame;
   delete segmentated;
+  delete example;
+  delete examplemask;
   cvReleaseBlobs(blobs);
   //cvReleaseStructuringElement(&morphKernel);
   firstTime = false;

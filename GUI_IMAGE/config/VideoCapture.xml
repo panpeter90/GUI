@@ -5,9 +5,9 @@
 <enableFlip>0</enableFlip>
 <use_roi>1</use_roi>
 <roi_defined>1</roi_defined>
-<roi_x0>231</roi_x0>
-<roi_y0>65</roi_y0>
-<roi_x1>659</roi_x1>
-<roi_y1>312</roi_y1>
+<roi_x0>318</roi_x0>
+<roi_y0>123</roi_y0>
+<roi_x1>600</roi_x1>
+<roi_y1>305</roi_y1>
 <showOutput>1</showOutput>
 </opencv_storage>

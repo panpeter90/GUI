@@ -15,7 +15,15 @@ ImageAnalysis::~ImageAnalysis() {
 	}
 }
 
+bool ImageAnalysis::processImageSingle(Mat imageToProcess) {		
 
+	bool status = processImage(imageToProcess, false);	
+
+	return status;
+	while(waitKey(10) != ESC_KEYCODE) {}
+
+	return status;
+}
 bool ImageAnalysis::processImage(string path, bool useCVHighGUI) {		
 	Mat imageToProcess;
 	bool loadSuccessful = true;

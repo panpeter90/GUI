@@ -70,7 +70,7 @@ class ImageAnalysis {
 		 */
 		bool processImage(string path, bool useCVHighGUI = true);
 
-
+		bool processImageSingle(Mat imageToProcess);
 		/*!
 		 * \brief Processes the image already loaded
 		 * \param image Image loaded and ready to be processed

@@ -27,7 +27,7 @@ public:
   BlobTracking();
   ~BlobTracking();
 
-  void process(const cv::Mat &img_input, const cv::Mat &img_mask, cv::Mat &img_output);
+  void process(const cv::Mat &img_input, const cv::Mat &img_mask, cv::Mat &img_output, bool &hasResult,cv::Mat &img_predict,bool isblob);
   const cvb::CvTracks getTracks();
 };
 

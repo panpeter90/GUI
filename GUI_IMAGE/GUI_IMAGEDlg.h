@@ -6,7 +6,8 @@
 #include "afxwin.h"
 #include "afxcmn.h"
 #include "Resource.h"
-
+#include <opencv\cv.h>
+#include <opencv\highgui.h>
 
 // CGUI_IMAGEDlg dialog
 class CGUI_IMAGEDlg : public CDialogEx
@@ -63,4 +64,6 @@ public:
 	afx_msg void UpdateLabelAll();
 	afx_msg void UpdateLabelOne();
 };
+
+void ImageDisplay(cv::Mat src_);
 
