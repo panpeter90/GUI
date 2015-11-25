@@ -56,7 +56,10 @@
 using namespace std;
 using namespace cv;
 
-/*Various color for detect shirt */
+//global variable
+CWnd *g_pMyDialog ;
+CWnd *pWnd_STATIC_CAR;
+//
 
 CString msg;
 /*option setup global variables*/
@@ -99,8 +102,8 @@ Mat BuildVocabulary( const string& databaseDir,
 	const Ptr<FeatureDetector>& detector,
 	const Ptr<DescriptorExtractor>& extractor,
 	int wordCount);
-void  opencv_llc_bow_Descriptor(Mat &image, Mat &vocabulary,  vector<KeyPoint> &key_points, Mat &llc_descriptor);
-void  train();
+void opencv_llc_bow_Descriptor(Mat &image, Mat &vocabulary,  vector<KeyPoint> &key_points, Mat &llc_descriptor);
+void train();
 void test();
 void PrepareForPredict();
 void test_single_image(Mat predictImage);
@@ -125,9 +128,7 @@ Params params;
 void MakeDir( const string& filepath )
 {
 	char path[MAX_PATH];
-
 	strncpy(path, filepath.c_str(),  MAX_PATH);
-
 #ifdef _WIN32
 	CreateDirectoryA(path,NULL);
 #else
@@ -139,18 +140,13 @@ void ListDir( const string& directory, vector<string>* entries)
 {
 	char dir[MAX_PATH];
 	string  str_dir = directory;
-
 	strncpy(dir, str_dir.c_str(), MAX_PATH);
-
 	DIR             *p_dir;
 	struct dirent *p_dirent;
-
 	p_dir = opendir(dir);
-
 	while(p_dirent = readdir(p_dir))
 	{
 		string  str_fn = p_dirent->d_name;
-
 		if (str_fn != "." && str_fn != "..")  entries->push_back(str_fn);
 	}
 }
@@ -171,12 +167,8 @@ class CAboutDlg : public CDialogEx
 {
 public:
 	CAboutDlg();
-
-
-
 // Dialog Data
 	enum { IDD = IDD_ABOUTBOX };
-
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -286,9 +278,7 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	m_pFont->CreatePointFont(250, _T("Arial"));
 	StaticCar.SetFont(m_pFont, TRUE);
 	StaticBicycle.SetFont(m_pFont, TRUE);
-	UpdateLabelAll();
 	//end number vehicle
-	
 	if (!AllocConsole()){
 		AfxMessageBox(_T("Failed to create the console!"));
 	}
@@ -296,8 +286,12 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	*stderr = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_ERROR_HANDLE), _O_WRONLY), _T("a"));
 	*stdin = *_tfdopen(_open_osfhandle((intptr_t) GetStdHandle(STD_INPUT_HANDLE), _O_WRONLY), _T("r"));
 	printf("Init console window successfully\n");
-
+	//Static text 
+	g_pMyDialog = AfxGetMainWnd();
+	pWnd_STATIC_CAR = g_pMyDialog->GetDlgItem(IDC_STATIC_CAR);
+	//end static text
 	//init console window end
+	UpdateLabelAll();
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -313,6 +307,14 @@ void CGUI_IMAGEDlg::UpdateLabelOne(){
 void CGUI_IMAGEDlg::UpdateLabelAll(){
 	UpdateLabelCar();
 	UpdateLabelBicycle();
+}
+
+void updateCarNumber(){
+	CString temp_carNumber;
+	stringstream convert;
+	convert << carNumber;
+	temp_carNumber = convert.str().c_str();
+	pWnd_STATIC_CAR->SetWindowText(temp_carNumber);
 }
 
 void CGUI_IMAGEDlg::UpdateLabelCar(){
@@ -489,7 +491,7 @@ void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 		test();
 	}else{
 		imageAnalysis.processImage(file_name);
-		UpdateLabelOne();
+		UpdateLabelOne();s
 	}*/
 	ViCapture* videoCapture;
 	videoCapture = new ViCapture;
@@ -520,8 +522,6 @@ void CGUI_IMAGEDlg::OnBnClickedCheck1()
     }
 
 }
-
-
 
 void CGUI_IMAGEDlg::OnCbnSelchangeCombo1() //FeatureDetector
 {
@@ -1209,8 +1209,6 @@ void test()
 
 void test_single_image (Mat predictImage){
 
-
-	//Mat image = imread( predictImage );
 	const clock_t begin_time = clock();
 	vector<KeyPoint> keyPoints;
 	vector<KeyPoint> keyPoints01;
@@ -1250,6 +1248,10 @@ void test_single_image (Mat predictImage){
 			category = itr -> first;
 		}
 
+	}
+	if(category == "Car"){
+		carNumber++;
+		updateCarNumber();
 	}
 	std::cout << "Image is " << " : " << category << std::endl;
 	//system("pause");
@@ -1345,8 +1347,7 @@ void ViCapture::start()
 	cv::Mat img_blob;
 	BlobTracking* blobTracking;
 	blobTracking = new BlobTracking;
-	//end
-	//
+	//end Blob Tracking
 	int frameignore = 0;
 	//
 	cv::Mat img_mask;
@@ -1382,7 +1383,7 @@ void ViCapture::start()
 
 				if(showOutput)
 				{
-					cv::imshow("Input", img_input);
+					//cv::imshow("Input", img_input);
 					std::cout << "Set ROI (press ESC to skip)" << std::endl;
 					VC_ROI::img_input1 = new IplImage(img_input);
 					cvSetMouseCallback("Input", VC_ROI::VideoCapture_on_mouse, NULL);
@@ -1418,8 +1419,8 @@ void ViCapture::start()
 		}
 		cv::Mat img_input(frame);
 
-		if(showOutput)
-			cv::imshow("Input", img_input);
+		//if(showOutput)
+			//cv::imshow("Input", img_input);
 
 		if(firstTime)
 			saveConfig();
@@ -1448,16 +1449,9 @@ void ViCapture::start()
 			cv::imshow("imagepredict", imagepredict);
 			test_single_image(imagepredict);
 			//imageAnalysis.processImage(imagepredict);
-			//system("pause");
 			}
-			// Perform vehicle counting
-			//vehicleCouting->setInput(img_blob);
-			//vehicleCouting->setTracks(blobTracking->getTracks());
-			//vehicleCouting->process();
 			std::cout << "Time spent blobTracking:" << float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << std::endl ;
 		}
-		//cv::imshow("img_mask", img_mask);
-		//std::cout << "delta_time: " << delta_time << std::endl;
 
 		cvResetImageROI(frame);
 
