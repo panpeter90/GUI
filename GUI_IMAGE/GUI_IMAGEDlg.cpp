@@ -110,6 +110,8 @@ void train();
 void test();
 void PrepareForPredict();
 void test_single_image(Mat predictImage);
+void test_single_image_non_spare (Mat predictImage);
+void updateCarNumber();
 
 //param
 class Params {
@@ -127,6 +129,7 @@ bool is_image = true;
 bool is_exit = false;
 bool is_sparse_coding = false;
 Params params;
+ViCapture* videoCapture;
 
 void MakeDir( const string& filepath )
 {
@@ -211,7 +214,7 @@ void CGUI_IMAGEDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PICTURE, Picture1);
 	DDX_Control(pDX, IDC_CHECK1, CheckBox);
 	DDX_Control(pDX, IDC_STATIC_CAR, StaticCar);
-	DDX_Control(pDX, IDC_STATIC_BICYCLE, StaticBicycle);
+	//DDX_Control(pDX, IDC_STATIC_BICYCLE, StaticBicycle);
 }
 
 BEGIN_MESSAGE_MAP(CGUI_IMAGEDlg, CDialogEx)
@@ -280,7 +283,6 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	CFont *m_pFont = new CFont();
 	m_pFont->CreatePointFont(250, _T("Arial"));
 	StaticCar.SetFont(m_pFont, TRUE);
-	StaticBicycle.SetFont(m_pFont, TRUE);
 	//end number vehicle
 	if (!AllocConsole()){
 		AfxMessageBox(_T("Failed to create the console!"));
@@ -294,23 +296,11 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	pWnd_STATIC_CAR = g_pMyDialog->GetDlgItem(IDC_STATIC_CAR);
 	//end static text
 	//init console window end
-	UpdateLabelAll();
+	updateCarNumber();
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-void CGUI_IMAGEDlg::UpdateLabelOne(){
-	if(UpdateLabelFlag == (float)1){
-		UpdateLabelCar();
-		cout << "UpdateLabelCar" << endl;
-	}else if(UpdateLabelFlag == (float)3){
-		UpdateLabelBicycle();
-		cout << "UpdateLabelBicycle" << endl;
-	}
-}
-void CGUI_IMAGEDlg::UpdateLabelAll(){
-	UpdateLabelCar();
-	UpdateLabelBicycle();
-}
+
 
 void updateCarNumber(){
 	CString temp_carNumber;
@@ -320,20 +310,7 @@ void updateCarNumber(){
 	pWnd_STATIC_CAR->SetWindowText(temp_carNumber);
 }
 
-void CGUI_IMAGEDlg::UpdateLabelCar(){
-	CString temp_carNumber;
-	stringstream convert;
-	convert << carNumber;
-	temp_carNumber = convert.str().c_str();
-	StaticCar.SetWindowText(temp_carNumber);
-}
-void CGUI_IMAGEDlg::UpdateLabelBicycle(){
-	CString temp_bicycleNumber;
-	stringstream convert;
-	convert << bicycleNumber;
-	temp_bicycleNumber = convert.str().c_str();
-	StaticBicycle.SetWindowText(temp_bicycleNumber);
-}
+
 
 
 void CGUI_IMAGEDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -409,23 +386,10 @@ void CGUI_IMAGEDlg::OnBnClickedButton1() //load image
 		if (dlg.DoModal()==IDOK)
 		{
 			CString CSfile_name = dlg.GetPathName();
-			video_name=(CStringA(CSfile_name));
-			VideoCapture cap(video_name); // open the default camera
-			if(!cap.isOpened()){  // check if we succeeded
-				cout << "Error is existed when open this video \n" <<endl;
-			}
-			Mat edges;
-			for(;;)
-			{
-				Mat frame;
-				if (!cap.read(frame))             
-					break; // get a new frame from video
-				imshow("DisplayImage",frame);
-				if(waitKey(30)>0 || is_exit==true) {
-					break;
-				}
-			}
-			cout << "Close this video \n" << endl;
+			video_name = (CStringA(CSfile_name));
+			//VideoCapture cap(video_name); // open the default camera
+			videoCapture = new ViCapture;
+			videoCapture->setVideo(video_name);
 		}
 	}
 	// TODO: Add your control notification handler code here
@@ -496,9 +460,10 @@ void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 		imageAnalysis.processImage(file_name);
 		UpdateLabelOne();s
 	}*/
-	ViCapture* videoCapture;
-	videoCapture = new ViCapture;
-	videoCapture->setVideo("D:/video/100ANV01/9.MP4");
+
+	if(is_sparse_coding){
+		PrepareForPredict();
+	}
 	videoCapture->setUpVideo();
 	videoCapture->start();
 	system("pause");
@@ -1208,7 +1173,10 @@ void test()
 	system("pause");
 }
 
-
+void test_single_image_non_spare (Mat predictImage){
+	imageAnalysis.processImage(predictImage);
+	updateCarNumber();
+}
 
 void test_single_image (Mat predictImage){
 
@@ -1327,12 +1295,12 @@ void ViCapture::setUpVideo()
 
 	if(!capture)
 		std::cerr << "Cannot open video file "<< videoFileName << std::endl;
+
 }
 void ViCapture::start()
 {
 
 	loadConfig();
-	PrepareForPredict();
 	if(!capture)  std::cerr << "Capture error..." << std::endl;
 
 	int input_fps = cvGetCaptureProperty(capture,CV_CAP_PROP_FPS);
@@ -1448,10 +1416,13 @@ void ViCapture::start()
 			std::cout << "hasResult: " << hasResult << std::endl ;
 			cv::imshow("img_blob", img_blob);
 			if(hasResult){
-			isblob = false ;
-			cv::imshow("imagepredict", imagepredict);
-			boost::thread t(&test_single_image,imagepredict);
-			//imageAnalysis.processImage(imagepredict);
+				isblob = false ;
+				cv::imshow("imagepredict", imagepredict);
+				if(is_sparse_coding){
+					boost::thread t(&test_single_image,imagepredict);
+				}else {
+					boost::thread t(&test_single_image_non_spare,imagepredict);
+				}
 			}
 			//std::cout << "Time spent blobTracking:" << float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << std::endl ;
 		}
