@@ -41,7 +41,10 @@
 #include "traffic/package_bgs/FrameDifferenceBGS.h"
 #include "traffic/package_tracking/BlobTracking.h"
 #include "traffic/VideoCapture/VideoCapture.h"
+//boost lib
+#include <boost/thread.hpp>
 
+/*----------------------------------------------include files -----------------------------------------------*/
 #define MAX_PATH 512
 
 #define MIN_KPS    3
@@ -1249,10 +1252,10 @@ void test_single_image (Mat predictImage){
 		}
 
 	}
-	if(category == "Car"){
+	//if(category == "Car"){
 		carNumber++;
 		updateCarNumber();
-	}
+	//}
 	std::cout << "Image is " << " : " << category << std::endl;
 	//system("pause");
 }
@@ -1349,41 +1352,41 @@ void ViCapture::start()
 	blobTracking = new BlobTracking;
 	//end Blob Tracking
 	int frameignore = 0;
+	float timewaiting= 0; 
 	//
 	cv::Mat img_mask;
 	cv::Mat img_model_bg;
 	double loopDelay = 33.333;
-	if(input_fps > 0)
-		loopDelay = (1./input_fps)*1000.;
-	std::cout << "loopDelay:" << loopDelay << std::endl;
-
 	bool firstTime = true;
 	bool hasResult = false;	
 	bool isblob = true;
 	Mat imagepredict;
+
+	if(input_fps > 0)
+		loopDelay = (1./input_fps)*1000.;
+	std::cout << "loopDelay:" << loopDelay << std::endl;
+	loopDelay = 45;
+	//system("pause");
 	do
 	{
-		frameNumber++;
-
+		//frameNumber++;
+		const clock_t begin_time1 = clock();
 		frame1 = cvQueryFrame(capture);
 		if(!frame1) break;
 
 		ImageDisplay(frame1); //display input full size
 		cvResize(frame1, frame);
-		if(enableFlip)
-			cvFlip(frame, frame, 0);
-
+		/*if(enableFlip)
+			cvFlip(frame, frame, 0);*/
 		if(VC_ROI::use_roi == true && VC_ROI::roi_defined == false && firstTime == true)
 		{
 			VC_ROI::reset();
-
 			do
 			{
 				cv::Mat img_input(frame);
-
 				if(showOutput)
 				{
-					//cv::imshow("Input", img_input);
+					cv::imshow("Input", img_input);
 					std::cout << "Set ROI (press ESC to skip)" << std::endl;
 					VC_ROI::img_input1 = new IplImage(img_input);
 					cvSetMouseCallback("Input", VC_ROI::VideoCapture_on_mouse, NULL);
@@ -1400,7 +1403,6 @@ void ViCapture::start()
 					VC_ROI::use_roi = false;
 					break;
 				}
-
 				if(VC_ROI::roi_defined)
 				{
 					std::cout << "ROI defined (" << VC_ROI::roi_x0 << "," << VC_ROI::roi_y0 << "," << VC_ROI::roi_x1 << "," << VC_ROI::roi_y1 << ")" << std::endl;
@@ -1409,9 +1411,9 @@ void ViCapture::start()
 				else
 					std::cout << "ROI undefined" << std::endl;
 
-			}while(1);
+			} while(1);
 		}
-
+		
 		if(VC_ROI::use_roi == true && VC_ROI::roi_defined == true)
 		{
 			CvRect rect = cvRect(VC_ROI::roi_x0, VC_ROI::roi_y0, VC_ROI::roi_x1 - VC_ROI::roi_x0, VC_ROI::roi_y1 - VC_ROI::roi_y0);
@@ -1425,10 +1427,11 @@ void ViCapture::start()
 		if(firstTime)
 			saveConfig();
 
-		const clock_t begin_time1 = clock();
+		
 		bgs->process(img_input, img_mask,img_model_bg);
-		std::cout << "Time spent bgs:" <<float( clock () - begin_time1 )/CLOCKS_PER_SEC << "\n" << std::endl ;
-		const clock_t begin_time = clock();
+		//std::cout << "Time spent bgs:" <<float( clock () - begin_time1 )/CLOCKS_PER_SEC << "\n" << std::endl ;
+		//const clock_t begin_time = clock();
+
 		if(!img_mask.empty())
 		{
 			
@@ -1447,25 +1450,29 @@ void ViCapture::start()
 			if(hasResult){
 			isblob = false ;
 			cv::imshow("imagepredict", imagepredict);
-			test_single_image(imagepredict);
+			boost::thread t(&test_single_image,imagepredict);
 			//imageAnalysis.processImage(imagepredict);
 			}
-			std::cout << "Time spent blobTracking:" << float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << std::endl ;
+			//std::cout << "Time spent blobTracking:" << float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << std::endl ;
 		}
-
 		cvResetImageROI(frame);
-
-		key = cvWaitKey(loopDelay);
+		timewaiting = loopDelay - (double(clock() - begin_time1));
+		if(timewaiting <= 1 ) {
+			timewaiting = 1;
+		}
+		std::cout << "timewaiting:" << timewaiting << "\n" << std::endl ;
+		key = cvWaitKey(timewaiting);
+		//key = cvWaitKey(loopDelay);
 		//std::cout << "key: " << key << std::endl;
 
-		if(key == KEY_SPACE)
+		/*if(key == KEY_SPACE)
 			key = cvWaitKey(0);
 
 		if(key == KEY_ESC)
 			break;
 
 		if(stopAt > 0 && stopAt == frameNumber)
-			key = cvWaitKey(0);
+			key = cvWaitKey(0);*/
 
 		firstTime = false;
 
