@@ -374,7 +374,7 @@ void CGUI_IMAGEDlg::OnBnClickedButton1() //load image
 			CString CSfile_name = dlg.GetPathName();
 			file_name=(CStringA(CSfile_name));
 			Mat src = imread(file_name,1);
-			Mat dest;
+			//Mat dest;
 			//resize(src,dest,Size(320,240),0,0,1);
 			//imshow("DisplayImage",src);
 			ImageDisplay(src);
@@ -458,19 +458,31 @@ void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 		test();
 	}else{
 		imageAnalysis.processImage(file_name);
-		UpdateLabelOne();s
+		UpdateLabelOne();
 	}*/
+	if(is_image){
+		if(is_sparse_coding){
+			PrepareForPredict();
+			Mat image = imread(file_name);
+			//imshow("Hello",image);
+			test_single_image(image);
 
-	if(is_sparse_coding){
-		PrepareForPredict();
+		}else{
+			Mat image = imread(file_name);
+			test_single_image_non_spare(image);
+		}
+
+	} else {
+		if(is_sparse_coding){
+			PrepareForPredict();
+		}
+		videoCapture->setUpVideo();
+		videoCapture->start();
 	}
-	videoCapture->setUpVideo();
-	videoCapture->start();
-	system("pause");
+
 	/*PrepareForPredict();
 	Mat image = imread("D:/video/example.jpg");
 	imshow("Hello",image);
-
 	test_single_image(image);
 	system("pause");*/
 }

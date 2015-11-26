@@ -104,6 +104,8 @@
     <None Include="res\carlab.ico" />
     <None Include="res\GUI_IMAGE.ico" />
     <None Include="res\GUI_IMAGE.rc2" />
+    <None Include="res\lorry.ico" />
+    <None Include="res\travel.ico" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dirent.h" />
