@@ -99,13 +99,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="res\bicycle.ico" />
+    <None Include="res\bus.ico" />
     <None Include="res\car.ico" />
-    <None Include="res\carlab.ico" />
+    <None Include="res\container.ico" />
     <None Include="res\GUI_IMAGE.ico" />
     <None Include="res\GUI_IMAGE.rc2" />
-    <None Include="res\lorry.ico" />
-    <None Include="res\travel.ico" />
+    <None Include="res\truck.ico" />
+    <None Include="res\van.ico" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dirent.h" />

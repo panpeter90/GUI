@@ -1,7 +1,14 @@
 #include "stdafx.h"
 #include "BlobTracking.h"
 #include "cvblob/cvblob.h"
-
+#include <iostream>
+#include <stdio.h>
+//#include <opencv2/nonfree/nonfree.hpp>
+#include <fstream>
+#include <cstring>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string>
 #define MARGIN 20
 
 BlobTracking::BlobTracking() : firstTime(true), minArea(500), maxArea(20000), debugTrack(false), debugBlob(false), showBlobMask(false), showOutput(true)
@@ -78,16 +85,22 @@ void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv
 			  //cvShowImage("cvSetImageROI", example);
 			  cvSetImageROI(examplemask, cvRect((*it).second->minx, (*it).second->miny, (*it).second->maxx-(*it).second->minx, (*it).second->maxy-(*it).second->miny));
 			  //cvShowImage("cvSetImageROIMask", examplemask);
-			  //cv::Mat img_final(example);
+			  //cv::Mat img_final_save(example);
 			  //cv::Mat img_final_mask(examplemask);
 			  //cv::Mat img_final_recognize;
-			 // img_final.copyTo(img_final_recognize,img_final_mask);
+			  //img_final.copyTo(img_final_recognize,img_final_mask);
 			  img_recognize.copyTo(img_final, img_mask);
 			  //cv::imshow("img_final_mask", img_final_mask);
 			  //cv::imshow("img_final", img_final);
 			  hasResult = true;
 			  img_final.copyTo(imagepredict);
-			  cv::imwrite("D:/video/example.jpg",imagepredict);
+			  
+			  static int number_id = 0;
+			  std::stringstream convert;
+			  convert << number_id;
+			  number_id++;
+			  //temp_truckNumber = convert.str().c_str();
+			  cv::imwrite("D:/video/VehicleCapture/" + convert.str()+ ".jpg" ,imagepredict);
 			  //system("pause");
 
 		  }

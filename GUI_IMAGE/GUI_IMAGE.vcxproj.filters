@@ -46,16 +46,16 @@
     <None Include="res\car.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\carlab.ico">
+    <None Include="res\truck.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\bicycle.ico">
+    <None Include="res\bus.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\lorry.ico">
+    <None Include="res\van.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\travel.ico">
+    <None Include="res\container.ico">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

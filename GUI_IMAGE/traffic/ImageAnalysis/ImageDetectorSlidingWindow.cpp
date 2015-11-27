@@ -7,7 +7,8 @@ ImageDetectorSlidingWindow::~ImageDetectorSlidingWindow() {}
 
 extern float UpdateLabelFlag;
 extern int carNumber;
-extern int bicycleNumber;
+extern int truckNumber;
+extern int busNumber;
 
 void ImageDetectorSlidingWindow::detectTargets(Mat& image, vector<Rect>& targetsBoundingRectanglesOut, Mat& votingMaskOut, Mat& scaledVotingMaskOut, bool showTargetBoundingRectangles, bool showImageKeyPoints, size_t* numberOfWindowsOut) {
 	cout << "-> Detecting targets..." << endl;
@@ -17,11 +18,13 @@ void ImageDetectorSlidingWindow::detectTargets(Mat& image, vector<Rect>& targets
 	UpdateLabelFlag = prediction;
 	if(UpdateLabelFlag == (float)1){
 		carNumber++;
+	}else if(UpdateLabelFlag == (float)2){
+		truckNumber++;
 	}else if(UpdateLabelFlag == (float)3){
-		bicycleNumber++;
+		busNumber++;
 	}
 	cout << "UpdateLabelFlag" << UpdateLabelFlag << endl;
-	cout << "car 1- bike 2 - bicycle 3- crane 4 - truck 5 - bus 6" << endl;
+	cout << "car 1- truck 2 - bus 3" << endl;
 	cout << "Result label is " << prediction << endl;
 	cout << "-> Detected " << " targets in " << performanceTimer.getElapsedTimeFormated()  << endl;
 }

@@ -43,6 +43,10 @@ public:
 	CComboBox ComboBox5;
 	CComboBox ComboBox6;
 	CStatic StaticCar;
+	CStatic StaticTruck;
+	CStatic StaticBus;
+	CStatic StaticVan;
+	CStatic StaticContainer;
 	
 	afx_msg void OnCbnSelchangeCombo2();
 	CStatic Picture1;

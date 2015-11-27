@@ -62,6 +62,10 @@ using namespace cv;
 //global variable
 CWnd *g_pMyDialog ;
 CWnd *pWnd_STATIC_CAR;
+CWnd *pWnd_STATIC_TRUCK;
+CWnd *pWnd_STATIC_BUS;
+CWnd *pWnd_STATIC_VAN;
+CWnd *pWnd_STATIC_CONTAINER;
 //
 
 CString msg;
@@ -74,13 +78,12 @@ int g_classifierSelection = 1;
 CLI UserGui;
 //number of vehicle
 float UpdateLabelFlag = 0;
-int ResourceFlag = 0;
+int ResourceFlag = 0; //image or video
 int carNumber = 0;
-int bikeNumber = 0;
-int bicycleNumber = 0;
-int craneNumber = 0;
 int truckNumber = 0;
 int busNumber = 0;
+int vanNumber = 0;
+int containerNumber = 0;
 //end
 const string kVocabularyFile( "vocabulary.xml" );
 const string kBowImageDescriptorsDir( "bagOfWords" );
@@ -112,6 +115,10 @@ void PrepareForPredict();
 void test_single_image(Mat predictImage);
 void test_single_image_non_spare (Mat predictImage);
 void updateCarNumber();
+void updateTruckNumber();
+void updateBusNumber();
+void updateVanNumber();
+void updateContainerNumber();
 
 //param
 class Params {
@@ -214,7 +221,10 @@ void CGUI_IMAGEDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PICTURE, Picture1);
 	DDX_Control(pDX, IDC_CHECK1, CheckBox);
 	DDX_Control(pDX, IDC_STATIC_CAR, StaticCar);
-	//DDX_Control(pDX, IDC_STATIC_BICYCLE, StaticBicycle);
+	DDX_Control(pDX, IDC_STATIC_TRUCK, StaticTruck);
+	DDX_Control(pDX, IDC_STATIC_BUS, StaticBus);
+	DDX_Control(pDX, IDC_STATIC_VAN, StaticVan);
+	DDX_Control(pDX, IDC_STATIC_CONTAINER, StaticContainer);
 }
 
 BEGIN_MESSAGE_MAP(CGUI_IMAGEDlg, CDialogEx)
@@ -283,6 +293,10 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	CFont *m_pFont = new CFont();
 	m_pFont->CreatePointFont(250, _T("Arial"));
 	StaticCar.SetFont(m_pFont, TRUE);
+	StaticTruck.SetFont(m_pFont, TRUE);
+	StaticBus.SetFont(m_pFont, TRUE);
+	StaticVan.SetFont(m_pFont, TRUE);
+	StaticContainer.SetFont(m_pFont, TRUE);
 	//end number vehicle
 	if (!AllocConsole()){
 		AfxMessageBox(_T("Failed to create the console!"));
@@ -294,9 +308,17 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	//Static text 
 	g_pMyDialog = AfxGetMainWnd();
 	pWnd_STATIC_CAR = g_pMyDialog->GetDlgItem(IDC_STATIC_CAR);
+	pWnd_STATIC_TRUCK = g_pMyDialog->GetDlgItem(IDC_STATIC_TRUCK);
+	pWnd_STATIC_BUS = g_pMyDialog->GetDlgItem(IDC_STATIC_BUS);
+	pWnd_STATIC_VAN = g_pMyDialog->GetDlgItem(IDC_STATIC_VAN);
+	pWnd_STATIC_CONTAINER = g_pMyDialog->GetDlgItem(IDC_STATIC_CONTAINER);
 	//end static text
 	//init console window end
 	updateCarNumber();
+	updateTruckNumber();
+	updateBusNumber();
+	updateVanNumber();
+	updateContainerNumber();
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -309,6 +331,37 @@ void updateCarNumber(){
 	temp_carNumber = convert.str().c_str();
 	pWnd_STATIC_CAR->SetWindowText(temp_carNumber);
 }
+void updateTruckNumber(){
+	CString temp_truckNumber;
+	stringstream convert;
+	convert << truckNumber;
+	temp_truckNumber = convert.str().c_str();
+	pWnd_STATIC_TRUCK->SetWindowText(temp_truckNumber);
+}
+
+void updateBusNumber(){
+	CString temp_busNumber;
+	stringstream convert;
+	convert << busNumber;
+	temp_busNumber = convert.str().c_str();
+	pWnd_STATIC_BUS->SetWindowText(temp_busNumber);
+}
+void updateVanNumber(){
+	CString temp_vanNumber;
+	stringstream convert;
+	convert << vanNumber;
+	temp_vanNumber = convert.str().c_str();
+	pWnd_STATIC_VAN->SetWindowText(temp_vanNumber);
+}
+
+void updateContainerNumber(){
+	CString temp_containerNumber;
+	stringstream convert;
+	convert << containerNumber;
+	temp_containerNumber = convert.str().c_str();
+	pWnd_STATIC_CONTAINER->SetWindowText(temp_containerNumber);
+}
+
 
 
 
@@ -454,12 +507,9 @@ void CGUI_IMAGEDlg::OnBnClickedOk() //exit button
 
 void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 {
-	/*if(is_sparse_coding){
-		test();
-	}else{
-		imageAnalysis.processImage(file_name);
-		UpdateLabelOne();
-	}*/
+
+	/*test();
+	return;*/
 	if(ResourceFlag == 0){
 		if(is_sparse_coding){
 			PrepareForPredict();
@@ -479,12 +529,6 @@ void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 		videoCapture->setUpVideo();
 		videoCapture->start();
 	}
-
-	/*PrepareForPredict();
-	Mat image = imread("D:/video/example.jpg");
-	imshow("Hello",image);
-	test_single_image(image);
-	system("pause");*/
 }
 
 void CGUI_IMAGEDlg::OnBnClickedCheck1()
@@ -1187,7 +1231,14 @@ void test()
 
 void test_single_image_non_spare (Mat predictImage){
 	imageAnalysis.processImage(predictImage);
-	updateCarNumber();
+	if(UpdateLabelFlag ==(float)1){
+		updateCarNumber();
+	}else if(UpdateLabelFlag ==(float)2){
+		updateTruckNumber();
+	}else if(UpdateLabelFlag ==(float)3){
+		updateBusNumber();
+	}
+
 }
 
 void test_single_image (Mat predictImage){
@@ -1230,13 +1281,28 @@ void test_single_image (Mat predictImage){
 			confidence = curConfidence;
 			category = itr -> first;
 		}
-
 	}
-	//if(category == "Car"){
+	if(category == "Car"){
 		carNumber++;
 		updateCarNumber();
-	//}
-	std::cout << "Image is " << " : " << category << std::endl;
+	}
+	if(category == "Truck"){
+		truckNumber++;
+		updateTruckNumber();
+	}
+	if(category == "Bus"){
+		busNumber++;
+		updateBusNumber();
+	}
+	if(category == "Van"){
+		vanNumber++;
+		updateVanNumber();
+	}
+	if(category == "Container"){
+		containerNumber++;
+		updateContainerNumber();
+	}
+	std::cout << "Image is" << " : " << category << std::endl;
 	//system("pause");
 }
 
