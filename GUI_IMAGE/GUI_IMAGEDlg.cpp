@@ -460,7 +460,7 @@ void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 		imageAnalysis.processImage(file_name);
 		UpdateLabelOne();
 	}*/
-	if(is_image){
+	if(ResourceFlag == 0){
 		if(is_sparse_coding){
 			PrepareForPredict();
 			Mat image = imread(file_name);
