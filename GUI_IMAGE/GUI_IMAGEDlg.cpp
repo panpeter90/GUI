@@ -1155,7 +1155,7 @@ void test()
 {
 
 	string  sample_name  = "Car";
-	string  test_dir  =  "data/imgs/Car";
+	string  test_dir  =  "data/train/Car";
 
 	vector<string>  imgs_fns;
 	vector<string>  names_img_class;
@@ -1483,7 +1483,7 @@ void ViCapture::start()
 			
 			if(isblob == false){
 				frameignore++;
-				if(frameignore >= 30) {
+				if(frameignore >= 80) {
 					isblob = true;
 					frameignore = 0;
 				}
@@ -1496,11 +1496,13 @@ void ViCapture::start()
 			if(hasResult){
 				isblob = false ;
 				cv::imshow("imagepredict", imagepredict);
-				if(is_sparse_coding){
-					boost::thread t(&test_single_image,imagepredict);
-				}else {
-					boost::thread t(&test_single_image_non_spare,imagepredict);
-				}
+				 if( imagepredict.cols < (VC_ROI::roi_x1 - VC_ROI::roi_x0 - 5) ) {
+					 if(is_sparse_coding){
+						 boost::thread t(&test_single_image,imagepredict);
+					 }else {
+						 boost::thread t(&test_single_image_non_spare,imagepredict);
+					 }
+				 }
 			}
 			//std::cout << "Time spent blobTracking:" << float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << std::endl ;
 		}
