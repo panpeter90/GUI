@@ -508,8 +508,8 @@ void CGUI_IMAGEDlg::OnBnClickedOk() //exit button
 void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 {
 
-	/*test();
-	return;*/
+	test();
+	return;
 	if(ResourceFlag == 0){
 		if(is_sparse_coding){
 			PrepareForPredict();
@@ -1138,7 +1138,7 @@ void PrepareForPredict(){
 			exit(-1);
 		}
 
-		std::cout << name_ic << " svm :  " << svmFileName << std::endl;
+		//std::cout << name_ic << " svm :  " << svmFileName << std::endl;
 	}
 
 	std::string vocabularyFile =  voc_fn;
@@ -1146,23 +1146,31 @@ void PrepareForPredict(){
 	FileStorage fs( vocabularyFile, FileStorage::READ );
 	if ( fs.isOpened() )  fs["vocabulary"] >> vocabulary_sparse;
 
-	std::cout << "vocabularyFile :  " << vocabularyFile << std::endl;
-	std::cout << "vocabulary rows cols = " << vocabulary_sparse.rows << "  " << vocabulary_sparse.cols << std::endl;
+	//std::cout << "vocabularyFile :  " << vocabularyFile << std::endl;
+	//std::cout << "vocabulary rows cols = " << vocabulary_sparse.rows << "  " << vocabulary_sparse.cols << std::endl;
 }
 
 
 void test()
 {
+	string dir[5]= {"Car","Bus","Container","Truck","Van"};
+	string sample[8]= {"1","2","3","4","5","6","7","8"};
+	for(int j=0;j<=7;j++) {
+		for(int k=0;k<=4;k++) {
 
-	string  sample_name  = "Car";
-	string  test_dir  =  "data/train/Car";
+		string  sample_name  = dir[k];
+		string  test_dir  =  "D:/video/MauTest/"+ sample[j] +"/"+ dir[k];
+
+	//string  sample_name  = "Bus";
+	//string  test_dir  =  "D:/OpenCV/Project/GUIIMAGE/GUI/GUI_IMAGE/data/train/Bus";// Car,Bus,Container,Truck,Van
+	//string  test_dir  =  "D:/video/MauTest/1/Bus";
 
 	vector<string>  imgs_fns;
 	vector<string>  names_img_class;
 	PrepareForPredict();
 	GetFileList( test_dir, &imgs_fns );
 
-	std::cout << sample_name << " test...  " << std::endl;
+	//std::cout << sample_name << " test...  " << std::endl;
 
 	int  num_correct = 0;
 
@@ -1222,10 +1230,13 @@ void test()
 		std::cout << queryImage << " : " << category << std::endl;
 
 		if (sample_name == category) num_correct++;
-		std::cout << "Time spent detect:" <<float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << endl;
+		//std::cout << "Time spent detect:" <<float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << endl;
 	}
 
-	std::cout << num_correct << " " << imgs_fns.size() << " " << num_correct*1.0/imgs_fns.size() << std::endl;
+		std::cout << num_correct << " " << imgs_fns.size() << " " << num_correct*1.0/imgs_fns.size() << std::endl;
+		}
+	std::cout << "--------------" << std::endl;
+	}
 	system("pause");
 }
 
