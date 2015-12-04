@@ -32,6 +32,8 @@ bool ImagePreprocessor::loadAndPreprocessImage(const string& filename, Mat& imag
 
 void ImagePreprocessor::preprocessImage(Mat& image, bool useCVHighGUI) {
 	// remove noise with bilateral filter
+	return;
+	//minhnt31
 	cv::bilateralFilter(image.clone(), image, _bilateralFilterDistance, _bilateralFilterSigmaColor, _bilateralFilterSigmaSpace);
 	if (useCVHighGUI) {
 		//imshow(WINDOW_NAME_BILATERAL_FILTER, image);

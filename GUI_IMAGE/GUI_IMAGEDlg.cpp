@@ -78,7 +78,7 @@ int g_classifierSelection = 1;
 CLI UserGui;
 //number of vehicle
 float UpdateLabelFlag = 0;
-int ResourceFlag = 0; //image or video
+int ResourceFlag = 1; //image or video
 int carNumber = 0;
 int truckNumber = 0;
 int busNumber = 0;
@@ -111,6 +111,7 @@ Mat BuildVocabulary( const string& databaseDir,
 void opencv_llc_bow_Descriptor(Mat &image, Mat &vocabulary,  vector<KeyPoint> &key_points, Mat &llc_descriptor);
 void train();
 void test();
+void test_non_spare();
 void PrepareForPredict();
 void test_single_image(Mat predictImage);
 void test_single_image_non_spare (Mat predictImage);
@@ -134,7 +135,8 @@ string file_name="";
 string video_name="";
 bool is_image = true;
 bool is_exit = false;
-bool is_sparse_coding = false;
+bool is_llc = true;
+bool is_debug_mode = false;
 Params params;
 ViCapture* videoCapture;
 
@@ -220,6 +222,7 @@ void CGUI_IMAGEDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO6, ComboBox6);
 	DDX_Control(pDX, IDC_PICTURE, Picture1);
 	DDX_Control(pDX, IDC_CHECK1, CheckBox);
+	DDX_Control(pDX, IDC_CHECK2, CheckBoxDebug);
 	DDX_Control(pDX, IDC_STATIC_CAR, StaticCar);
 	DDX_Control(pDX, IDC_STATIC_TRUCK, StaticTruck);
 	DDX_Control(pDX, IDC_STATIC_BUS, StaticBus);
@@ -242,6 +245,7 @@ BEGIN_MESSAGE_MAP(CGUI_IMAGEDlg, CDialogEx)
 	ON_CBN_SELCHANGE(IDC_COMBO5, &CGUI_IMAGEDlg::OnCbnSelchangeCombo5)
 	ON_CBN_SELCHANGE(IDC_COMBO6, &CGUI_IMAGEDlg::OnCbnSelchangeCombo6)
 	ON_BN_CLICKED(IDC_START, &CGUI_IMAGEDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_CHECK2, &CGUI_IMAGEDlg::OnBnClickedCheck2)
 END_MESSAGE_MAP()
 
 
@@ -288,7 +292,11 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	ComboBox5.SetCurSel(0);
 	ComboBox6.SetCurSel(0);
 	//end combobox
-	ComboBox2.SetCurSel(0); //Image
+	ComboBox2.SetCurSel(1); //video
+	//Check llc
+	CheckBox.SetCheck(BST_CHECKED);
+	//Check debug
+	CheckBoxDebug.SetCheck(BST_UNCHECKED);
 	//number of vehicle
 	CFont *m_pFont = new CFont();
 	m_pFont->CreatePointFont(250, _T("Arial"));
@@ -507,23 +515,31 @@ void CGUI_IMAGEDlg::OnBnClickedOk() //exit button
 
 void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 {
-
-	/*test();
+	/*if(is_llc){
+		test();//test_non_spare();
+	}else {
+		test_non_spare();
+	}
 	return;*/
 	if(ResourceFlag == 0){
-		if(is_sparse_coding){
+		if(is_llc){
 			PrepareForPredict();
 			Mat image = imread(file_name);
 			//imshow("Hello",image);
+			//std::cout << "Time spent bgs:" <<float( clock () - begin_time1 )/CLOCKS_PER_SEC << "\n" << std::endl ;
+			const clock_t begin_time = clock();
 			test_single_image(image);
+			std::cout << "Time testing:" <<float( clock () - begin_time )/CLOCKS_PER_SEC << "\n" << std::endl ;
 
 		}else{
 			Mat image = imread(file_name);
+			const clock_t begin_time = clock();
 			test_single_image_non_spare(image);
+			std::cout << "Time testing:" <<float( clock () - begin_time )/CLOCKS_PER_SEC << "\n" << std::endl ;
 		}
 
 	} else {
-		if(is_sparse_coding){
+		if(is_llc){
 			PrepareForPredict();
 		}
 		videoCapture->setUpVideo();
@@ -538,13 +554,26 @@ void CGUI_IMAGEDlg::OnBnClickedCheck1()
 	UINT nCheck = CheckBox.GetCheck();
     if (nCheck == BST_CHECKED)
     {
-        is_sparse_coding = true;
+        is_llc = true;
     }
     else
     {
-        is_sparse_coding = false;
+        is_llc = false;
     }
 
+}
+void CGUI_IMAGEDlg::OnBnClickedCheck2()
+{
+	// TODO: Add your control notification handler code here
+	UINT nCheck = CheckBoxDebug.GetCheck();
+	if (nCheck == BST_CHECKED)
+	{
+		is_debug_mode = true;
+	}
+	else
+	{
+		is_debug_mode = false;
+	}
 }
 
 void CGUI_IMAGEDlg::OnCbnSelchangeCombo1() //FeatureDetector
@@ -775,10 +804,14 @@ void CLI::setupTraining() {
 void CGUI_IMAGEDlg::OnBnClickedButton2()
 {
 	// TODO: Start training
-	if(is_sparse_coding){
+	if(is_llc){
+		const clock_t begin_time = clock();
 		train();
+		std::cout << "Time spent train linear SVM:" <<float( clock () - begin_time )/CLOCKS_PER_SEC << "\n" << std::endl ;
 	}else {
+		const clock_t begin_time = clock();
 		UserGui.setupTraining();
+		std::cout << "Time spent train non-linear SVM :" <<float( clock () - begin_time )/CLOCKS_PER_SEC << "\n" << std::endl ;
 	}
 }
 
@@ -1138,7 +1171,7 @@ void PrepareForPredict(){
 			exit(-1);
 		}
 
-		std::cout << name_ic << " svm :  " << svmFileName << std::endl;
+		//std::cout << name_ic << " svm :  " << svmFileName << std::endl;
 	}
 
 	std::string vocabularyFile =  voc_fn;
@@ -1146,23 +1179,192 @@ void PrepareForPredict(){
 	FileStorage fs( vocabularyFile, FileStorage::READ );
 	if ( fs.isOpened() )  fs["vocabulary"] >> vocabulary_sparse;
 
-	std::cout << "vocabularyFile :  " << vocabularyFile << std::endl;
-	std::cout << "vocabulary rows cols = " << vocabulary_sparse.rows << "  " << vocabulary_sparse.cols << std::endl;
+	//std::cout << "vocabularyFile :  " << vocabularyFile << std::endl;
+	//std::cout << "vocabulary rows cols = " << vocabulary_sparse.rows << "  " << vocabulary_sparse.cols << std::endl;
 }
 
+void test_non_spare(){
+	string classCar ="";
+	string dir[5]= {"Car","Bus","Container","Truck","Van"};
+	const clock_t begin_time = clock();
+
+	
+		for(int k=0;k<=4;k++) {
+			string  sample_name  = dir[k];
+			string  test_dir  = "D:/video/TestResult/" + dir[k];
+			//string  sample_name  = "Bus";
+			//string  test_dir  =  "D:/OpenCV/Project/GUIIMAGE/GUI/GUI_IMAGE/data/train/Bus";// Car,Bus,Container,Truck,Van
+			//string  test_dir  =  "D:/video/MauTest/1/Bus";
+			vector<string>  imgs_fns;
+			vector<string>  names_img_class;
+			PrepareForPredict();
+			GetFileList( test_dir, &imgs_fns );
+			//std::cout << sample_name << " test...  " << std::endl;
+			int  num_correct = 0;
+			int  vehicleinclass=0;
+			int  vehicleinrightclass=0;
+			int  carclass=0;
+			int  busclass=0;
+			int  conclass=0;
+			int  truckclass=0;
+			int  vanclass=0;
+			for ( vector<string>::iterator itr = imgs_fns.begin(); itr != imgs_fns.end();  itr++)
+			{
+				string  category;
+				string  img_fn = *itr;
+				string  queryImage = test_dir + "/" + img_fn;
+				vehicleinclass++;
+				Mat image = imread(queryImage);
+				imageAnalysis.processImage(image);
+				if(UpdateLabelFlag == (float)1){
+					classCar ="Car";
+					carclass++;
+				} else if(UpdateLabelFlag == (float)2){
+					classCar ="Bus";
+					busclass++;
+				} else if(UpdateLabelFlag == (float)3){
+					classCar ="Container";
+					conclass++;
+				} else if(UpdateLabelFlag == (float)4){
+					classCar ="Truck";
+					truckclass++;
+				} else if(UpdateLabelFlag == (float)5){
+					classCar ="Van";
+					vanclass++;
+				}
+				std::cout << queryImage  << " is class : " << classCar << std::endl;
+				if(classCar == sample_name){
+					vehicleinrightclass++;
+				}
+			}
+			std::cout << vehicleinrightclass << "/" << vehicleinclass << "==>" << ((float)vehicleinrightclass/vehicleinclass)*100 <<"%" <<std::endl;
+			std::cout <<" car: " << carclass <<"Bus: " <<busclass << " Con: " << conclass << " Truck: "  <<truckclass  << " Van: " << vanclass <<std::endl;
+			std::cout << "----------------------"<< sample_name <<"-------------------"<< std::endl;
+		}
+		std::cout << "Time spent testing non-linear SVM:" << float( clock () - begin_time )/CLOCKS_PER_SEC << "\n" << std::endl ;
+
+}
 
 void test()
 {
+		string dir[5]= {"Car","Bus","Container","Truck","Van"};
+		const clock_t begin_time = clock();
+		for(int k=0;k<=4;k++) {
+			string  sample_name  = dir[k];
+			string  test_dir  =  "D:/video/TestResult/" + dir[k];
 
-	string  sample_name  = "Car";
-	string  test_dir  =  "data/imgs/Car";
+			//string  sample_name  = "Bus";
+			//string  test_dir  =  "D:/OpenCV/Project/GUIIMAGE/GUI/GUI_IMAGE/data/train/Bus";// Car,Bus,Container,Truck,Van
+			//string  test_dir  =  "D:/video/MauTest/1/Bus";
+
+			vector<string>  imgs_fns;
+			vector<string>  names_img_class;
+			PrepareForPredict();
+			GetFileList( test_dir, &imgs_fns );
+
+			//std::cout << sample_name << " test...  " << std::endl;
+
+			int  num_correct = 0;
+			int  carclass=0;
+			int  busclass=0;
+			int  conclass=0;
+			int  truckclass=0;
+			int  vanclass=0;
+			for ( vector<string>::iterator itr = imgs_fns.begin(); itr != imgs_fns.end();  itr++)
+			{
+
+
+				string  category;
+
+				string  img_fn = *itr;
+
+				string  queryImage = test_dir + "/" + img_fn;
+
+				Mat image = imread( queryImage );
+				const clock_t begin_time = clock();
+				vector<KeyPoint> keyPoints;
+				vector<KeyPoint> keyPoints01;
+				detector_sparse -> detect( image, keyPoints01 );
+
+
+				for(uint32_t i=0; i<keyPoints01.size(); i++)
+				{
+					KeyPoint  myPoint;
+
+					myPoint = keyPoints01[i];
+
+					if (myPoint.size >= MIN_KPS) keyPoints.push_back(myPoint);
+				}
+
+				Mat queryDescriptor;
+
+				queryDescriptor = Mat::zeros(1, VOCA_COLS, CV_32F);
+
+				opencv_llc_bow_Descriptor( image, vocabulary_sparse, keyPoints, queryDescriptor );
+
+				int sign = 0; //sign of the positive class
+				float confidence = -FLT_MAX;
+				for (map<string, CvSVM*>::const_iterator itr = svms_map_sparse.begin(); itr != svms_map_sparse.end(); ++itr )
+				{
+					CvSVM  *psvm = itr->second;
+
+					if ( sign == 0 ) {
+
+						float scoreValue = psvm->predict( queryDescriptor, true );
+						float classValue = psvm->predict( queryDescriptor, false );
+						sign = ( scoreValue < 0.0f ) == ( classValue < 0.0f )? 1 : -1;
+
+					}
+					float curConfidence = sign * psvm->predict( queryDescriptor, true );
+					if ( curConfidence > confidence ) {
+						confidence = curConfidence;
+						category = itr -> first;
+					}
+				}
+				std::cout << queryImage << " : " << category << std::endl;
+				if(category =="Car"){
+					carclass++;
+				}else if(category == "Bus"){
+					busclass++;
+				}else if(category == "Container"){
+					conclass++;
+				}else if(category == "Truck"){
+					truckclass++;
+				}else if(category == "Van"){
+					vanclass++;
+				}
+				if (sample_name == category) num_correct++;
+				//std::cout << "Time spent detect:" <<float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << endl;
+			}
+			std::cout << num_correct << "/" << imgs_fns.size() << "==>" << num_correct*100.0/imgs_fns.size() <<"%"<<std::endl;
+			std::cout <<" car: " << carclass <<"Bus: " <<busclass << " Con: " << conclass << " Truck: "  <<truckclass  << " Van: " << vanclass <<std::endl;
+			std::cout << "----------------------"<< sample_name <<"-------------------"<< std::endl;	
+			}
+		std::cout << "Time spent testing linear SVM:" << float( clock () - begin_time )/CLOCKS_PER_SEC << "\n" << std::endl ;
+
+}
+
+
+/*void test()
+{
+	string dir[5]= {"Car","Bus","Container","Truck","Van"};
+	string sample[8]= {"1","2","3","4","5","6","7","8"};
+	for(int j=0;j<=7;j++) {
+		for(int k=0;k<=4;k++) {
+
+		string  sample_name  = dir[k];
+		string  test_dir  =  "D:/video/MauTest/"+ sample[j] +"/"+ dir[k];
+
+	//string  sample_name  = "Bus";
+	//string  test_dir  =  "D:/OpenCV/Project/GUIIMAGE/GUI/GUI_IMAGE/data/train/Bus";// Car,Bus,Container,Truck,Van
+	//string  test_dir  =  "D:/video/MauTest/1/Bus";
 
 	vector<string>  imgs_fns;
 	vector<string>  names_img_class;
 	PrepareForPredict();
 	GetFileList( test_dir, &imgs_fns );
 
-	std::cout << sample_name << " test...  " << std::endl;
+	//std::cout << sample_name << " test...  " << std::endl;
 
 	int  num_correct = 0;
 
@@ -1216,27 +1418,33 @@ void test()
 				confidence = curConfidence;
 				category = itr -> first;
 			}
-
 		}
 
 		std::cout << queryImage << " : " << category << std::endl;
 
 		if (sample_name == category) num_correct++;
-		std::cout << "Time spent detect:" <<float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << endl;
+		//std::cout << "Time spent detect:" <<float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << endl;
 	}
 
-	std::cout << num_correct << " " << imgs_fns.size() << " " << num_correct*1.0/imgs_fns.size() << std::endl;
+		std::cout << num_correct << "/" << imgs_fns.size() << "==>" << num_correct*100.0/imgs_fns.size() <<"%"<<std::endl;
+		}
+	std::cout << "------------------ " << sample[j] <<" ------------------"<<std::endl;
+	}
 	system("pause");
-}
+}*/
 
 void test_single_image_non_spare (Mat predictImage){
 	imageAnalysis.processImage(predictImage);
 	if(UpdateLabelFlag ==(float)1){
 		updateCarNumber();
 	}else if(UpdateLabelFlag ==(float)2){
-		updateTruckNumber();
-	}else if(UpdateLabelFlag ==(float)3){
 		updateBusNumber();
+	}else if(UpdateLabelFlag ==(float)3){
+		updateContainerNumber();
+	}else if(UpdateLabelFlag ==(float)4){
+		updateTruckNumber();
+	}else if(UpdateLabelFlag ==(float)5){
+		updateVanNumber();
 	}
 
 }
@@ -1468,38 +1676,48 @@ void ViCapture::start()
 		cv::Mat img_input(frame);
 
 		//if(showOutput)
-			//cv::imshow("Input", img_input);
+			//cv::imshow("Input Region", img_input);
 
 		if(firstTime)
 			saveConfig();
 
 		
 		bgs->process(img_input, img_mask,img_model_bg);
+
 		//std::cout << "Time spent bgs:" <<float( clock () - begin_time1 )/CLOCKS_PER_SEC << "\n" << std::endl ;
 		//const clock_t begin_time = clock();
 
 		if(!img_mask.empty())
 		{
 			
+			if(is_debug_mode){
+				cv::imshow("img_mask", img_mask);
+			}
 			if(isblob == false){
 				frameignore++;
-				if(frameignore >= 30) {
+				if(frameignore >= 80) {
 					isblob = true;
 					frameignore = 0;
 				}
 			}
 			std::cout << "frameignore :" << frameignore << "\n" << std::endl ;
-			
 			blobTracking->process(img_input, img_mask, img_blob, hasResult, imagepredict, isblob);
 			std::cout << "hasResult: " << hasResult << std::endl ;
-			cv::imshow("img_blob", img_blob);
+			if(is_debug_mode){
+				cv::imshow("img_blob", img_blob);
+			}
 			if(hasResult){
-				isblob = false ;
-				cv::imshow("imagepredict", imagepredict);
-				if(is_sparse_coding){
-					boost::thread t(&test_single_image,imagepredict);
-				}else {
-					boost::thread t(&test_single_image_non_spare,imagepredict);
+				if( imagepredict.cols < (VC_ROI::roi_x1 - VC_ROI::roi_x0 - 5) ) {
+					isblob = false ;
+					if(is_debug_mode){
+						cv::imshow("imagepredict", imagepredict);
+					}
+
+					if(is_llc){
+						boost::thread t(&test_single_image,imagepredict);
+					}else {
+						boost::thread t(&test_single_image_non_spare,imagepredict);
+					}
 				}
 			}
 			//std::cout << "Time spent blobTracking:" << float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n" << std::endl ;
@@ -1565,3 +1783,5 @@ void ViCapture::loadConfig()
 
 	cvReleaseFileStorage(&fs);
 }
+
+

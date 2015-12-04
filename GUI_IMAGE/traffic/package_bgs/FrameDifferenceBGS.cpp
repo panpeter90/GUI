@@ -63,7 +63,7 @@ void FrameDifferenceBGS::process(const cv::Mat &img_input, cv::Mat &img_output, 
 	//cv::Mat binary_image; 
 	
   if(showOutput)
-    cv::imshow("Frame Difference", img_foreground);
+    //cv::imshow("Frame Difference", img_foreground);
 
   img_foreground.copyTo(img_output);
 

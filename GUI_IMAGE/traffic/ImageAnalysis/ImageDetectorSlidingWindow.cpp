@@ -7,26 +7,33 @@ ImageDetectorSlidingWindow::~ImageDetectorSlidingWindow() {}
 
 extern float UpdateLabelFlag;
 extern int carNumber;
-extern int truckNumber;
 extern int busNumber;
+extern int containerNumber;
+extern int truckNumber;
+extern int vanNumber;
 
 void ImageDetectorSlidingWindow::detectTargets(Mat& image, vector<Rect>& targetsBoundingRectanglesOut, Mat& votingMaskOut, Mat& scaledVotingMaskOut, bool showTargetBoundingRectangles, bool showImageKeyPoints, size_t* numberOfWindowsOut) {
-	cout << "-> Detecting targets..." << endl;
+	//cout << "-> Detecting targets..." << endl;
 	PerformanceTimer performanceTimer;
-	performanceTimer.start();
+	//performanceTimer.start();
 	float prediction = getImageClassifier()->analyzeImage(image);
+	//cout << "-> Detected " << " targets in " << performanceTimer.getElapsedTimeFormated()  << endl;
 	UpdateLabelFlag = prediction;
 	if(UpdateLabelFlag == (float)1){
 		carNumber++;
 	}else if(UpdateLabelFlag == (float)2){
-		truckNumber++;
-	}else if(UpdateLabelFlag == (float)3){
 		busNumber++;
+	}else if(UpdateLabelFlag == (float)3){
+		containerNumber++;
+	}else if(UpdateLabelFlag == (float)4){
+		truckNumber++;
+	}else if(UpdateLabelFlag == (float)5){
+		vanNumber++;
 	}
-	cout << "UpdateLabelFlag" << UpdateLabelFlag << endl;
-	cout << "car 1- truck 2 - bus 3" << endl;
+	//cout << "UpdateLabelFlag" << UpdateLabelFlag << endl;
+	//cout << "car 1- truck 2 - bus 3" << endl;
 	cout << "Result label is " << prediction << endl;
-	cout << "-> Detected " << " targets in " << performanceTimer.getElapsedTimeFormated()  << endl;
+	//cout << "-> Detected " << " targets in " << performanceTimer.getElapsedTimeFormated()  << endl;
 }
 
 /*void ImageDetectorSlidingWindow::detectTargets1(Mat& image, vector<Rect>& targetsBoundingRectanglesOut, Mat& votingMaskOut, Mat& scaledVotingMaskOut, bool showTargetBoundingRectangles, bool showImageKeyPoints, size_t* numberOfWindowsOut) {

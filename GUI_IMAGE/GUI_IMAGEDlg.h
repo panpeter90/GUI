@@ -54,6 +54,7 @@ public:
 	afx_msg void OnBnClickedRec();
 	afx_msg void OnBnClickedCheck1();
 	CButton CheckBox;
+	CButton CheckBoxDebug;
 	afx_msg void OnCbnSelchangeCombo6();
 	afx_msg void OnBnClickedStart();
 	afx_msg void OnCbnSelchangeCombo1();
@@ -62,6 +63,7 @@ public:
 	afx_msg void OnCbnSelchangeCombo5();
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedCheck2();
 };
 
 void ImageDisplay(cv::Mat src_);
