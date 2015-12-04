@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <string>
 #define MARGIN 50
-#define H_MARGIN 50
+#define H_MARGIN 20
 BlobTracking::BlobTracking() : firstTime(true), minArea(500), maxArea(20000), debugTrack(false), debugBlob(false), showBlobMask(false), showOutput(true)
 {
   std::cout << "BlobTracking()" << std::endl;

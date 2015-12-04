@@ -515,12 +515,12 @@ void CGUI_IMAGEDlg::OnBnClickedOk() //exit button
 
 void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 {
-	if(is_llc){
+	/*if(is_llc){
 		test();//test_non_spare();
 	}else {
 		test_non_spare();
 	}
-	return;
+	return;*/
 	if(ResourceFlag == 0){
 		if(is_llc){
 			PrepareForPredict();
@@ -1245,7 +1245,7 @@ void test_non_spare(){
 
 }
 
-/*void test()
+void test()
 {
 		string dir[5]= {"Car","Bus","Container","Truck","Van"};
 		const clock_t begin_time = clock();
@@ -1342,10 +1342,10 @@ void test_non_spare(){
 			}
 		std::cout << "Time spent testing linear SVM:" << float( clock () - begin_time )/CLOCKS_PER_SEC << "\n" << std::endl ;
 
-}*/
+}
 
 
-void test()
+/*void test()
 {
 	string dir[5]= {"Car","Bus","Container","Truck","Van"};
 	string sample[8]= {"1","2","3","4","5","6","7","8"};
@@ -1418,7 +1418,6 @@ void test()
 				confidence = curConfidence;
 				category = itr -> first;
 			}
-
 		}
 
 		std::cout << queryImage << " : " << category << std::endl;
@@ -1432,16 +1431,20 @@ void test()
 	std::cout << "------------------ " << sample[j] <<" ------------------"<<std::endl;
 	}
 	system("pause");
-}
+}*/
 
 void test_single_image_non_spare (Mat predictImage){
 	imageAnalysis.processImage(predictImage);
 	if(UpdateLabelFlag ==(float)1){
 		updateCarNumber();
 	}else if(UpdateLabelFlag ==(float)2){
-		updateTruckNumber();
-	}else if(UpdateLabelFlag ==(float)3){
 		updateBusNumber();
+	}else if(UpdateLabelFlag ==(float)3){
+		updateContainerNumber();
+	}else if(UpdateLabelFlag ==(float)4){
+		updateTruckNumber();
+	}else if(UpdateLabelFlag ==(float)5){
+		updateVanNumber();
 	}
 
 }

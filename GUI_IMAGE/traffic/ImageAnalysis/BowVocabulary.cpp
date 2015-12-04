@@ -171,13 +171,13 @@ bool BowVocabulary::computeTrainingData(TrainingData& trainingDataOut, const str
 				//#pragma omp critical
 				if (descriptorsTargetClass.rows > 0 && descriptorsTargetClass.cols == samplesWordSize) {
 					trainSamples.push_back(descriptorsTargetClass);
-					if(i<51) {
+					if(i<23) {
 						trainLabels.push_back(1); //car
-					}else if(i<101){
+					}else if(i<43){
 						trainLabels.push_back(2);//bus
-					}else if(i<151){
+					}else if(i<63){
 						trainLabels.push_back(3);//container
-					}else if(i<201){
+					}else if(i<88){
 						trainLabels.push_back(4);//truck
 					}else{
 						trainLabels.push_back(5); //van
