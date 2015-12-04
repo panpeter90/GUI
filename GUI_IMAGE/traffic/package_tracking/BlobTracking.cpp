@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string>
-#define MARGIN 70
-
+#define MARGIN 50
+#define H_MARGIN 50
 BlobTracking::BlobTracking() : firstTime(true), minArea(500), maxArea(20000), debugTrack(false), debugBlob(false), showBlobMask(false), showOutput(true)
 {
   std::cout << "BlobTracking()" << std::endl;
@@ -41,6 +41,7 @@ void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv
   img_input.copyTo(img_recognize);
   IplImage* example = new IplImage(img_recognize);
   line_pos = frame->width/2 + MARGIN;
+  line_height=frame->height/2 - H_MARGIN;
   frameHeight = frame->height;
   //cvConvertScale(frame, frame, 1, 0);
   IplImage* examplemask = new IplImage(img_mask);
@@ -80,7 +81,7 @@ void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv
 	  for (cvb::CvBlobs::iterator it = blobs.begin(); it!=blobs.end(); ++it) {
 		  std::cout << (*it).second->centroid.x << "," << (*it).second->centroid.y  << std::endl;
 		  //if((*it).second->centroid.x <= line_pos && (*it).second->centroid.x > line_pos - MARGIN){
-			if((*it).second->centroid.x <= line_pos){
+			if(((*it).second->centroid.x <= line_pos) && ((*it).second->centroid.y > line_height)) {
 			  cvSetImageROI(example, cvRect((*it).second->minx, (*it).second->miny, (*it).second->maxx-(*it).second->minx, (*it).second->maxy-(*it).second->miny));
 			  //cvShowImage("cvSetImageROI", example);
 			  cvSetImageROI(examplemask, cvRect((*it).second->minx, (*it).second->miny, (*it).second->maxx-(*it).second->minx, (*it).second->maxy-(*it).second->miny));

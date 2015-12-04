@@ -13,6 +13,7 @@ private:
   int minArea;
   int maxArea;
   int line_pos;
+  int line_height;
   int frameHeight;
   bool debugTrack;
   bool debugBlob;

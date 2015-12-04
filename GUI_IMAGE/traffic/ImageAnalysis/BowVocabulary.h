@@ -88,8 +88,8 @@ class BowVocabulary {
 			Ptr<ImagePreprocessor> imagePreprocessor, const string& vocabularyFilename, string trainingDataFilename, bool binaryDescriptor);
 		virtual ~BowVocabulary();
 
-		bool computeVocabulary(Mat& vocabularyOut, const string& vocabularyImgsList, bool outputAnalyzedImages = true, bool useOnlyTargetRegions = true);
-		bool computeTrainingData(TrainingData& trainingDataOut, const string& vocabularyImgsList, const string& samplesImgsList, bool outputAnalyzedImages = true);
+		bool computeVocabulary(Mat& vocabularyOut, const string& vocabularyImgsList, bool outputAnalyzedImages = false, bool useOnlyTargetRegions = true);
+		bool computeTrainingData(TrainingData& trainingDataOut, const string& vocabularyImgsList, const string& samplesImgsList, bool outputAnalyzedImages = false);
 
 		bool loadVocabulary(Mat& vocabularyOut);
 		bool saveVocabulary(const Mat& vocabulary);

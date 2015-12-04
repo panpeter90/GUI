@@ -85,7 +85,7 @@ bool ImageAnalysis::processImage(Mat& image, bool useCVHighGUI) {
 	_processedImage = _preprocessedImage.clone();
 
 	// target detection
-	cout << "\n\n";
+	//cout << "\n\n";
 	vector<Rect> targetsBoundingRectanglesOut;
 	Mat votingMask;
 	Mat votingMaskScaled;
