@@ -515,12 +515,12 @@ void CGUI_IMAGEDlg::OnBnClickedOk() //exit button
 
 void CGUI_IMAGEDlg::OnBnClickedRec() //Recognize button
 {
-	/*if(is_llc){
+	if(is_llc){
 		test();//test_non_spare();
 	}else {
 		test_non_spare();
 	}
-	return;*/
+	return;
 	if(ResourceFlag == 0){
 		if(is_llc){
 			PrepareForPredict();
