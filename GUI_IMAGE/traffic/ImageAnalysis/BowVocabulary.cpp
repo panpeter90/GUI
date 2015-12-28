@@ -171,13 +171,13 @@ bool BowVocabulary::computeTrainingData(TrainingData& trainingDataOut, const str
 				//#pragma omp critical
 				if (descriptorsTargetClass.rows > 0 && descriptorsTargetClass.cols == samplesWordSize) {
 					trainSamples.push_back(descriptorsTargetClass);
-					if(i<23) {
+					if(i<21) {
 						trainLabels.push_back(1); //car
-					}else if(i<43){
+					}else if(i<41){
 						trainLabels.push_back(2);//bus
-					}else if(i<63){
+					}else if(i<61){
 						trainLabels.push_back(3);//container
-					}else if(i<88){
+					}else if(i<81){
 						trainLabels.push_back(4);//truck
 					}else{
 						trainLabels.push_back(5); //van
@@ -188,7 +188,6 @@ bool BowVocabulary::computeTrainingData(TrainingData& trainingDataOut, const str
 				//end
 				/*vector< vector <KeyPoint> > keypointsTargetClass;
 				vector<KeyPoint> keypointsNonTargetClass;
-
 				ImageUtils::splitKeyPoints(imageFilenameShort, keypoints, keypointsTargetClass, keypointsNonTargetClass);
 
 				for (size_t targetClassInstancePosition = 0; targetClassInstancePosition < keypointsTargetClass.size(); ++targetClassInstancePosition) {

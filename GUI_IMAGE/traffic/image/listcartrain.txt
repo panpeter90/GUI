@@ -9,14 +9,12 @@ car8
 car9
 car10
 car11
-car12
 car13
 car14
 car15
 car16
 car17
 car18
-car19
 car20
 car21
 car22
@@ -67,7 +65,6 @@ truck4
 truck5
 truck6
 truck7
-truck8
 truck9
 truck10
 truck11
@@ -75,13 +72,9 @@ truck12
 truck13
 truck14
 truck15
-truck16
 truck17
 truck18
 truck19
-truck20
-truck21
-truck22
 truck23
 truck24
 truck25

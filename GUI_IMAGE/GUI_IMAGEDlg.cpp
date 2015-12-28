@@ -85,6 +85,10 @@ int busNumber = 0;
 int vanNumber = 0;
 int containerNumber = 0;
 //end
+COLORREF red = RGB(255, 0, 0);
+COLORREF black = RGB(0, 0, 0);
+//color
+//end
 const string kVocabularyFile( "vocabulary.xml" );
 const string kBowImageDescriptorsDir( "bagOfWords" );
 const string kSvmsDirs( "svms" );
@@ -120,6 +124,7 @@ void updateTruckNumber();
 void updateBusNumber();
 void updateVanNumber();
 void updateContainerNumber();
+void updateNumberAll();
 
 //param
 class Params {
@@ -234,6 +239,7 @@ BEGIN_MESSAGE_MAP(CGUI_IMAGEDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_CTLCOLOR()
 	ON_BN_CLICKED(IDC_BUTTON1, &CGUI_IMAGEDlg::OnBnClickedButton1)
 	ON_CBN_SELCHANGE(IDC_COMBO2, &CGUI_IMAGEDlg::OnCbnSelchangeCombo2)
 	ON_BN_CLICKED(IDOK, &CGUI_IMAGEDlg::OnBnClickedOk)
@@ -250,6 +256,156 @@ END_MESSAGE_MAP()
 
 
 // CGUI_IMAGEDlg message handlers
+
+//Color static text handler
+HBRUSH CGUI_IMAGEDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	if (nCtlColor == CTLCOLOR_STATIC)
+	{
+		switch ((int)UpdateLabelFlag)
+		{
+			case 1:
+				if(pWnd == pWnd_STATIC_CAR){
+					pDC->SetTextColor(red);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_BUS){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_CONTAINER){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_TRUCK){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_VAN){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				break;
+			case 2:
+				if(pWnd == pWnd_STATIC_CAR){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_BUS){
+					pDC->SetTextColor(red);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_CONTAINER){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_TRUCK){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_VAN){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				break;
+			case 3:
+				   if(pWnd == pWnd_STATIC_CAR){
+						pDC->SetTextColor(black);	
+						break;
+				   }
+				   if(pWnd == pWnd_STATIC_BUS){
+					   pDC->SetTextColor(black);	
+					   break;
+				   }
+				   if(pWnd == pWnd_STATIC_CONTAINER){
+					   pDC->SetTextColor(red);	
+					   break;
+				   }
+				   if(pWnd == pWnd_STATIC_TRUCK){
+					   pDC->SetTextColor(black);	
+					   break;
+				   }
+				   if(pWnd == pWnd_STATIC_VAN){
+					   pDC->SetTextColor(black);	
+					   break;
+				   }
+				break;
+			case 4:
+				if(pWnd == pWnd_STATIC_CAR){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_BUS){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_CONTAINER){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_TRUCK){
+					pDC->SetTextColor(red);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_VAN){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				break;
+			case 5:
+				if(pWnd == pWnd_STATIC_CAR){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_BUS){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_CONTAINER){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_TRUCK){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_VAN){
+					pDC->SetTextColor(red);	
+					break;
+				}
+				break;
+			default:
+				if(pWnd == pWnd_STATIC_CAR){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_BUS){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_CONTAINER){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_TRUCK){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				if(pWnd == pWnd_STATIC_VAN){
+					pDC->SetTextColor(black);	
+					break;
+				}
+				break;
+		}
+
+		
+		
+	}
+	return hbr;
+}
+//End static text
 
 BOOL CGUI_IMAGEDlg::OnInitDialog()
 {
@@ -322,11 +478,12 @@ BOOL CGUI_IMAGEDlg::OnInitDialog()
 	pWnd_STATIC_CONTAINER = g_pMyDialog->GetDlgItem(IDC_STATIC_CONTAINER);
 	//end static text
 	//init console window end
-	updateCarNumber();
+	/*updateCarNumber();
 	updateTruckNumber();
 	updateBusNumber();
 	updateVanNumber();
-	updateContainerNumber();
+	updateContainerNumber();*/
+	updateNumberAll();
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -338,6 +495,7 @@ void updateCarNumber(){
 	convert << carNumber;
 	temp_carNumber = convert.str().c_str();
 	pWnd_STATIC_CAR->SetWindowText(temp_carNumber);
+
 }
 void updateTruckNumber(){
 	CString temp_truckNumber;
@@ -369,10 +527,33 @@ void updateContainerNumber(){
 	temp_containerNumber = convert.str().c_str();
 	pWnd_STATIC_CONTAINER->SetWindowText(temp_containerNumber);
 }
-
-
-
-
+void updateNumberAll(){
+		CString temp_carNumber;
+		CString temp_truckNumber;
+		CString temp_busNumber;
+		CString temp_vanNumber;
+		CString temp_containerNumber;
+		stringstream convertcarNumber;
+		stringstream converttruckNumber;
+		stringstream convertbusNumber;
+		stringstream convertvanNumber;
+		stringstream convertcontainerNumber;
+		convertcarNumber << carNumber;
+		temp_carNumber = convertcarNumber.str().c_str();
+		pWnd_STATIC_CAR->SetWindowText(temp_carNumber);
+		converttruckNumber << truckNumber;
+		temp_truckNumber = converttruckNumber.str().c_str();
+		pWnd_STATIC_TRUCK->SetWindowText(temp_truckNumber);
+		convertbusNumber << busNumber;
+		temp_busNumber = convertbusNumber.str().c_str();
+		pWnd_STATIC_BUS->SetWindowText(temp_busNumber);
+		convertvanNumber << vanNumber;
+		temp_vanNumber = convertvanNumber.str().c_str();
+		pWnd_STATIC_VAN->SetWindowText(temp_vanNumber);
+		convertcontainerNumber << containerNumber;
+		temp_containerNumber = convertcontainerNumber.str().c_str();
+		pWnd_STATIC_CONTAINER->SetWindowText(temp_containerNumber);
+}
 
 void CGUI_IMAGEDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
@@ -1435,17 +1616,18 @@ void test()
 
 void test_single_image_non_spare (Mat predictImage){
 	imageAnalysis.processImage(predictImage);
-	if(UpdateLabelFlag ==(float)1){
-		updateCarNumber();
+	/*if(UpdateLabelFlag ==(float)1){
+		updateNumberAll();
 	}else if(UpdateLabelFlag ==(float)2){
-		updateBusNumber();
+		updateNumberAll();
 	}else if(UpdateLabelFlag ==(float)3){
-		updateContainerNumber();
+		updateNumberAll();
 	}else if(UpdateLabelFlag ==(float)4){
-		updateTruckNumber();
+		updateNumberAll();
 	}else if(UpdateLabelFlag ==(float)5){
-		updateVanNumber();
-	}
+		updateNumberAll();
+	}*/
+	updateNumberAll();
 
 }
 
@@ -1492,24 +1674,30 @@ void test_single_image (Mat predictImage){
 	}
 	if(category == "Car"){
 		carNumber++;
-		updateCarNumber();
+		UpdateLabelFlag=1;
+		//updateCarNumber();
 	}
 	if(category == "Truck"){
+		UpdateLabelFlag=4;
 		truckNumber++;
-		updateTruckNumber();
+		//updateTruckNumber();
 	}
 	if(category == "Bus"){
+		UpdateLabelFlag=2;
 		busNumber++;
-		updateBusNumber();
+		//updateBusNumber();
 	}
 	if(category == "Van"){
+		UpdateLabelFlag=5;
 		vanNumber++;
-		updateVanNumber();
+		//updateVanNumber();
 	}
 	if(category == "Container"){
+		UpdateLabelFlag=3;
 		containerNumber++;
-		updateContainerNumber();
+		//updateContainerNumber();
 	}
+	updateNumberAll();
 	std::cout << "Image is" << " : " << category << std::endl;
 	//system("pause");
 }
@@ -1578,7 +1766,6 @@ void ViCapture::setVideo(std::string filename)
 void ViCapture::setUpVideo()
 {
 	capture = cvCaptureFromFile(videoFileName.c_str());
-
 	if(!capture)
 		std::cerr << "Cannot open video file "<< videoFileName << std::endl;
 
@@ -1618,18 +1805,28 @@ void ViCapture::start()
 
 	if(input_fps > 0)
 		loopDelay = (1./input_fps)*1000.;
-	std::cout << "loopDelay:" << loopDelay << std::endl;
-	loopDelay = 45;
+	//std::cout << "loopDelay:" << loopDelay << std::endl;
+	loopDelay = 35;
 	//system("pause");
 	do
 	{
 		//frameNumber++;
 		const clock_t begin_time1 = clock();
-		frame1 = cvQueryFrame(capture);
-		if(!frame1) break;
+		//frame1 = cvQueryFrame(capture);
+		//if(!frame1) break;
+		frame = cvQueryFrame(capture);
+		if(!frame) break;
 
-		ImageDisplay(frame1); //display input full size
-		cvResize(frame1, frame);
+		//CvRect rect = cvRect(340,50,2500,1200);
+		//cvSetImageROI(frame, rect);
+		cv::Mat img_show(frame);
+		imshow("DisplayImage",img_show);
+		//cvResetImageROI(frame);
+
+		//ImageDisplay(frame); //display input full size
+		//cvResize(frame1, frame);
+
+		
 		/*if(enableFlip)
 			cvFlip(frame, frame, 0);*/
 		if(VC_ROI::use_roi == true && VC_ROI::roi_defined == false && firstTime == true)
@@ -1681,9 +1878,8 @@ void ViCapture::start()
 		if(firstTime)
 			saveConfig();
 
-		
 		bgs->process(img_input, img_mask,img_model_bg);
-
+		//std::cout << "Time spent img_mask:" <<float( clock () - begin_time12 )/CLOCKS_PER_SEC << "\n" << std::endl ;
 		//std::cout << "Time spent bgs:" <<float( clock () - begin_time1 )/CLOCKS_PER_SEC << "\n" << std::endl ;
 		//const clock_t begin_time = clock();
 
@@ -1700,19 +1896,20 @@ void ViCapture::start()
 					frameignore = 0;
 				}
 			}
-			std::cout << "frameignore :" << frameignore << "\n" << std::endl ;
+			//std::cout << "frameignore :" << frameignore << "\n" << std::endl ;
 			blobTracking->process(img_input, img_mask, img_blob, hasResult, imagepredict, isblob);
-			std::cout << "hasResult: " << hasResult << std::endl ;
+			//std::cout << "Time spent process:" <<float( clock () - begin_time )/CLOCKS_PER_SEC << "\n" << std::endl ;
+			//const clock_t begin_time = clock();
+			//std::cout << "hasResult: " << hasResult << std::endl ;
 			if(is_debug_mode){
 				cv::imshow("img_blob", img_blob);
 			}
 			if(hasResult){
-				if( imagepredict.cols < (VC_ROI::roi_x1 - VC_ROI::roi_x0 - 5) ) {
+				if( imagepredict.cols < (VC_ROI::roi_x1 - VC_ROI::roi_x0 - 20) ) {
 					isblob = false ;
-					if(is_debug_mode){
+					/*if(is_debug_mode){
 						cv::imshow("imagepredict", imagepredict);
-					}
-
+					}*/
 					if(is_llc){
 						boost::thread t(&test_single_image,imagepredict);
 					}else {
@@ -1726,9 +1923,12 @@ void ViCapture::start()
 		timewaiting = loopDelay - (double(clock() - begin_time1));
 		if(timewaiting <= 1 ) {
 			timewaiting = 1;
+			//std::cout << "timewaiting:" << timewaiting << "\n" << std::endl ;
 		}
-		std::cout << "timewaiting:" << timewaiting << "\n" << std::endl ;
+		
+		//std::cout << "Time spent do ALl:" << float( clock () - begin_time1 ) /  CLOCKS_PER_SEC << "\n" << std::endl ;
 		key = cvWaitKey(timewaiting);
+		//key = cvWaitKey(1);
 		//key = cvWaitKey(loopDelay);
 		//std::cout << "key: " << key << std::endl;
 

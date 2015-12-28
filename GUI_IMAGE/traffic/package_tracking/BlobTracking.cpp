@@ -31,10 +31,12 @@ void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv
 	
   if(img_input.empty() || img_mask.empty())
     return;
+  if(firstTime){
   loadConfig();
+  }
   hasResult = false;
-  //if(firstTime)
-  //  saveConfig();
+  if(firstTime)
+    saveConfig();
   cv::Mat img_final;
   IplImage* frame = new IplImage(img_input);
   cv::Mat img_recognize;
@@ -79,7 +81,7 @@ void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv
   
 	  //std::map<CvID, CvTrack *> CvTracks
 	  for (cvb::CvBlobs::iterator it = blobs.begin(); it!=blobs.end(); ++it) {
-		  std::cout << (*it).second->centroid.x << "," << (*it).second->centroid.y  << std::endl;
+		  //std::cout << (*it).second->centroid.x << "," << (*it).second->centroid.y  << std::endl;
 		  //if((*it).second->centroid.x <= line_pos && (*it).second->centroid.x > line_pos - MARGIN){
 			if(((*it).second->centroid.x <= line_pos) && ((*it).second->centroid.y > line_height)) {
 			  cvSetImageROI(example, cvRect((*it).second->minx, (*it).second->miny, (*it).second->maxx-(*it).second->minx, (*it).second->maxy-(*it).second->miny));
@@ -97,12 +99,12 @@ void BlobTracking::process(const cv::Mat &img_input, const cv::Mat &img_mask, cv
 			 // img_final.copyTo(imagepredict);
 			   img_final_save.copyTo(imagepredict);
 			  
-			  static int number_id = 0;
+			/*  static int number_id = 0;
 			  std::stringstream convert;
 			  convert << number_id;
-			  number_id++;
+			  number_id++;*/
 			  //temp_truckNumber = convert.str().c_str();
-			  cv::imwrite("D:/video/VehicleCapture/" + convert.str()+ ".jpg" ,imagepredict);
+			  //cv::imwrite("D:/video/VehicleCapture/" + convert.str()+ ".jpg" ,imagepredict);
 			  //cv::imwrite("D:/video/VehicleCapture/" + convert.str()+ ".jpg" ,img_final_save);
 			  //system("pause");
 

@@ -47,7 +47,7 @@ public:
 	CStatic StaticBus;
 	CStatic StaticVan;
 	CStatic StaticContainer;
-	
+	HBRUSH CGUI_IMAGEDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void OnCbnSelchangeCombo2();
 	CStatic Picture1;
 	afx_msg void OnBnClickedOk();
